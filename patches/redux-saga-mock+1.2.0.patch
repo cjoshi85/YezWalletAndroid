@@ -1,0 +1,356 @@
+diff --git a/node_modules/redux-saga-mock/dist/mockSaga.js b/node_modules/redux-saga-mock/dist/mockSaga.js
+index 2c77ae2..b04d0ac 100644
+--- a/node_modules/redux-saga-mock/dist/mockSaga.js
++++ b/node_modules/redux-saga-mock/dist/mockSaga.js
+@@ -33,7 +33,7 @@ var _lodash2 = _interopRequireDefault(_lodash);
+ 
+ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+ 
+-var GeneratorFunction = _regenerator2.default.mark(function _callee() {
++var GeneratorFunction = /*#__PURE__*/_regenerator2.default.mark(function _callee() {
+   return _regenerator2.default.wrap(function _callee$(_context) {
+     while (1) {
+       switch (_context.prev = _context.next) {
+@@ -66,6 +66,9 @@ var isRACE = function isRACE(effect) {
+ var isFORK = function isFORK(effect) {
+   return _lodash2.default.isObject(effect) && effect['@@redux-saga/IO'] && effect.FORK;
+ };
++var isALL = function isALL(effect) {
++  return _lodash2.default.isObject(effect) && effect['@@redux-saga/IO'] && effect.ALL;
++};
+ 
+ var matchers = exports.matchers = {
+   putAction: function putAction(action) {
+@@ -100,6 +103,11 @@ var matchers = exports.matchers = {
+       return isCALL(effect) && effect.CALL.fn === fn && _lodash2.default.isEqual(effect.CALL.args, args);
+     };
+   },
++  fork: function fork(fn) {
++    return function (effect) {
++      return isFORK(effect) && effect.FORK.fn === fn;
++    };
++  },
+   forkGeneratorFn: function forkGeneratorFn() {
+     return function (effect) {
+       return isFORK(effect) && effect.FORK.fn instanceof GeneratorFunction;
+@@ -140,6 +148,10 @@ function rreplace(matcher, effect, replEffCreator) {
+     return _lodash2.default.map(effect, function (e) {
+       return rreplace(matcher, e, replEffCreator);
+     });
++  } else if (isALL(effect)) {
++    return (0, _assign2.default)({}, effect, {
++      ALL: rreplace(matcher, effect.ALL, replEffCreator)
++    });
+   }
+   return effect;
+ }
+@@ -155,7 +167,7 @@ function findAllIndexes(array, matcher) {
+   return indexes;
+ }
+ 
+-var chainableMethods = ['onEffect', 'onTakeAction', 'onPutAction', 'onCall', 'onCallWithArgs', 'onCallWithExactArgs', 'onYieldEffect', 'onYieldTakeAction', 'onYieldPutAction', 'onYieldCall', 'onYieldCallWithArgs', 'onYieldCallWithExactArgs', 'stubCall', 'stubCallWithArgs', 'stubCallWithExactArgs', 'resetStubs', 'clearStoredEffects'];
++var chainableMethods = ['onEffect', 'onTakeAction', 'onPutAction', 'onCall', 'onCallWithArgs', 'onCallWithExactArgs', 'onYieldEffect', 'onYieldTakeAction', 'onYieldPutAction', 'onYieldCall', 'onYieldCallWithArgs', 'onYieldCallWithExactArgs', 'stubCall', 'stubCallWithArgs', 'stubCallWithExactArgs', 'stubFork', 'resetStubs', 'clearStoredEffects'];
+ 
+ function isSaga(saga) {
+   return Array.isArray(saga) || saga instanceof GeneratorFunction || !!saga.next;
+@@ -213,105 +225,90 @@ function mockArray(sagas) {
+ }
+ 
+ function createGenerator(saga, effects, listenersPre, listenersPost, stubs) {
+-  return _regenerator2.default.mark(function mockedGenerator() {
+-    var _this = this;
+-
+-    var current,
+-        _loop,
+-        _args4 = arguments;
+-
+-    return _regenerator2.default.wrap(function mockedGenerator$(_context4) {
+-      while (1) {
+-        switch (_context4.prev = _context4.next) {
+-          case 0:
+-            if (saga instanceof GeneratorFunction) {
+-              saga = saga.apply(undefined, _args4);
+-            }
+-            current = saga.next();
+-            _loop = _regenerator2.default.mark(function _loop() {
+-              var effect, stubbedEffect;
+-              return _regenerator2.default.wrap(function _loop$(_context3) {
+-                while (1) {
+-                  switch (_context3.prev = _context3.next) {
+-                    case 0:
+-                      effect = current.value;
+-                      // console.log('>> effect:', effect)
+-
+-                      effects.push(effect);
+-                      listenersPre.forEach(function (l) {
+-                        return recursive(l.match)(effect) && l.callback(effect);
+-                      });
+-                      stubbedEffect = stubs.reduce(function (seffect, stub) {
+-                        return rreplace(stub.match, seffect, stub.stubCreator);
+-                      }, effect);
+-                      // if (stubbedEffect !== effect) console.log('>>>> stubbed effect:', stubbedEffect)
+-
+-                      _context3.prev = 4;
+-                      return _context3.delegateYield(_regenerator2.default.mark(function _callee2() {
+-                        var data;
+-                        return _regenerator2.default.wrap(function _callee2$(_context2) {
+-                          while (1) {
+-                            switch (_context2.prev = _context2.next) {
+-                              case 0:
+-                                _context2.next = 2;
+-                                return stubbedEffect;
+-
+-                              case 2:
+-                                data = _context2.sent;
+-
+-                                listenersPost.forEach(function (l) {
+-                                  return recursive(l.match)(effect) && l.callback({ effect: effect, data: data });
+-                                });
+-                                current = saga.next(data);
+-
+-                              case 5:
+-                              case 'end':
+-                                return _context2.stop();
+-                            }
+-                          }
+-                        }, _callee2, _this);
+-                      })(), 't0', 6);
+-
+-                    case 6:
+-                      _context3.next = 11;
+-                      break;
+-
+-                    case 8:
+-                      _context3.prev = 8;
+-                      _context3.t1 = _context3['catch'](4);
+-
+-                      current = saga.throw(_context3.t1);
+-
+-                    case 11:
+-                    case 'end':
+-                      return _context3.stop();
++  return (/*#__PURE__*/_regenerator2.default.mark(function mockedGenerator() {
++      var _this = this;
++
++      var current,
++          _loop,
++          _args3 = arguments;
++
++      return _regenerator2.default.wrap(function mockedGenerator$(_context3) {
++        while (1) {
++          switch (_context3.prev = _context3.next) {
++            case 0:
++              if (saga instanceof GeneratorFunction) {
++                saga = saga.apply(undefined, _args3);
++              }
++              current = saga.next();
++              _loop = /*#__PURE__*/_regenerator2.default.mark(function _loop() {
++                var effect, stubbedEffect, data;
++                return _regenerator2.default.wrap(function _loop$(_context2) {
++                  while (1) {
++                    switch (_context2.prev = _context2.next) {
++                      case 0:
++                        effect = current.value;
++                        // console.log('>> effect:', effect)
++
++                        effects.push(effect);
++                        listenersPre.forEach(function (l) {
++                          return recursive(l.match)(effect) && l.callback(effect);
++                        });
++                        stubbedEffect = stubs.reduce(function (seffect, stub) {
++                          return rreplace(stub.match, seffect, stub.stubCreator);
++                        }, effect);
++                        // if (stubbedEffect !== effect) console.log('>>>> stubbed effect:', stubbedEffect)
++
++                        _context2.prev = 4;
++                        _context2.next = 7;
++                        return stubbedEffect;
++
++                      case 7:
++                        data = _context2.sent;
++
++                        listenersPost.forEach(function (l) {
++                          return recursive(l.match)(effect) && l.callback({ effect: effect, data: data });
++                        });
++                        current = saga.next(data);
++                        _context2.next = 15;
++                        break;
++
++                      case 12:
++                        _context2.prev = 12;
++                        _context2.t0 = _context2['catch'](4);
++
++                        current = saga.throw(_context2.t0);
++
++                      case 15:
++                      case 'end':
++                        return _context2.stop();
++                    }
+                   }
+-                }
+-              }, _loop, _this, [[4, 8]]);
+-            });
++                }, _loop, _this, [[4, 12]]);
++              });
+ 
+-          case 3:
+-            if (current.done) {
+-              _context4.next = 7;
+-              break;
+-            }
++            case 3:
++              if (current.done) {
++                _context3.next = 7;
++                break;
++              }
+ 
+-            return _context4.delegateYield(_loop(), 't0', 5);
++              return _context3.delegateYield(_loop(), 't0', 5);
+ 
+-          case 5:
+-            _context4.next = 3;
+-            break;
++            case 5:
++              _context3.next = 3;
++              break;
+ 
+-          case 7:
+-            return _context4.abrupt('return', current.value);
++            case 7:
++              return _context3.abrupt('return', current.value);
+ 
+-          case 8:
+-          case 'end':
+-            return _context4.stop();
++            case 8:
++            case 'end':
++              return _context3.stop();
++          }
+         }
+-      }
+-    }, mockedGenerator, this);
+-  });
++      }, mockedGenerator, this);
++    })
++  );
+ }
+ 
+ function stubCallCreator(newTargetFn) {
+@@ -321,6 +318,13 @@ function stubCallCreator(newTargetFn) {
+   };
+ }
+ 
++function stubForkCreator(newTargetFn) {
++  return function (effect) {
++    var cloned = _lodash2.default.cloneDeep(effect);
++    return _lodash2.default.set(cloned, 'FORK.fn', newTargetFn);
++  };
++}
++
+ var addListener = function addListener(target, listeners, callback, matcher) {
+   for (var _len2 = arguments.length, args = Array(_len2 > 4 ? _len2 - 4 : 0), _key2 = 4; _key2 < _len2; _key2++) {
+     args[_key2 - 4] = arguments[_key2];
+@@ -357,10 +361,10 @@ function mockGenerator(saga) {
+ 
+   var createStub = function createStub(matcher, stubCreator) {
+     if (!_lodash2.default.isFunction(stubCreator)) throw new Error('stub function required');
+-    var s = { match: matcher, stubCreator: stubCreator };
+-    // FIXME replacement works only with stubCall because its matcher is memoized and in the other cases
+-    // the macher is created on every call
+-    var pos = _lodash2.default.findIndex(stubs, matcher);
++    var s = { match: matcher, stubCreator: stubCreator
++      // FIXME replacement works only with stubCall because its matcher is memoized and in the other cases
++      // the macher is created on every call
++    };var pos = _lodash2.default.findIndex(stubs, matcher);
+     if (pos !== -1) {
+       stubs[pos] = s;
+     } else {
+@@ -442,6 +446,9 @@ function mockGenerator(saga) {
+     stubCallWithExactArgs: function stubCallWithExactArgs(fn, args, stub) {
+       return createStub(matchers.callWithExactArgs(fn, args), stubCallCreator(stub));
+     },
++    stubFork: function stubFork(fn, stub) {
++      return createStub(matchers.fork(fn), stubForkCreator(stub));
++    },
+     resetStubs: function resetStubs() {
+       stubs.splice(stubs.length - 3, 3);return retval;
+     }, // last 3 stubs are for forks, calls to generator and arrays
+@@ -456,12 +463,10 @@ function mockGenerator(saga) {
+ 
+ function createQueryMethods(getEffects) {
+   if (Array.isArray(getEffects)) {
+-    (function () {
+-      var effects = getEffects;
+-      getEffects = function getEffects() {
+-        return effects;
+-      };
+-    })();
++    var effects = getEffects;
++    getEffects = function getEffects() {
++      return effects;
++    };
+   }
+   var findEffect = function findEffect(effect) {
+     var fromPos = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+diff --git a/node_modules/redux-saga-mock/src/mockSaga.js b/node_modules/redux-saga-mock/src/mockSaga.js
+index f3f1841..71da7fb 100644
+--- a/node_modules/redux-saga-mock/src/mockSaga.js
++++ b/node_modules/redux-saga-mock/src/mockSaga.js
+@@ -13,6 +13,7 @@ const isTAKE = (effect) => _.isObject(effect) && effect['@@redux-saga/IO'] && ef
+ const isCALL = (effect) => _.isObject(effect) && effect['@@redux-saga/IO'] && effect.CALL
+ const isRACE = (effect) => _.isObject(effect) && effect['@@redux-saga/IO'] && effect.RACE
+ const isFORK = (effect) => _.isObject(effect) && effect['@@redux-saga/IO'] && effect.FORK
++const isALL = (effect) => _.isObject(effect) && effect['@@redux-saga/IO'] && effect.ALL
+ 
+ export const matchers = {
+   putAction: (action) => _.isString(action)
+@@ -28,6 +29,8 @@ export const matchers = {
+     effect => isCALL(effect) && effect.CALL.fn === fn && _.isMatch(effect.CALL.args, args),
+   callWithExactArgs: (fn, args) =>
+     effect => isCALL(effect) && effect.CALL.fn === fn && _.isEqual(effect.CALL.args, args),
++  fork: (fn) => 
++    effect => isFORK(effect) && effect.FORK.fn === fn,
+   forkGeneratorFn: () =>
+     effect => isFORK(effect) && effect.FORK.fn instanceof GeneratorFunction,
+   callGeneratorFn: () =>
+@@ -57,6 +60,10 @@ function rreplace (matcher, effect, replEffCreator) {
+     })
+   } else if (_.isArray(effect)) {
+     return _.map(effect, (e) => rreplace(matcher, e, replEffCreator))
++  } else if (isALL(effect)) {
++    return Object.assign({}, effect, {
++      ALL: rreplace(matcher, effect.ALL, replEffCreator)
++    })
+   }
+   return effect
+ }
+@@ -85,6 +92,7 @@ const chainableMethods = [
+   'stubCall',
+   'stubCallWithArgs',
+   'stubCallWithExactArgs',
++  'stubFork',
+   'resetStubs',
+   'clearStoredEffects'
+ ]
+@@ -162,6 +170,13 @@ function stubCallCreator (newTargetFn) {
+   }
+ }
+ 
++function stubForkCreator (newTargetFn) {
++  return effect => {
++    let cloned = _.cloneDeep(effect)
++    return _.set(cloned, 'FORK.fn', newTargetFn)
++  }
++}
++
+ const addListener = (target, listeners, callback, matcher, ...args) => {
+   let retval
+   if (callback) {
+@@ -249,6 +264,7 @@ function mockGenerator (saga) {
+     stubCall: (fn, stub) => createStub(matchers.call(fn), stubCallCreator(stub)),
+     stubCallWithArgs: (fn, args, stub) => createStub(matchers.callWithArgs(fn, args), stubCallCreator(stub)),
+     stubCallWithExactArgs: (fn, args, stub) => createStub(matchers.callWithExactArgs(fn, args), stubCallCreator(stub)),
++    stubFork: (fn, stub) => createStub(matchers.fork(fn), stubForkCreator(stub)),
+     resetStubs: () => { stubs.splice(stubs.length - 3, 3); return retval },  // last 3 stubs are for forks, calls to generator and arrays
+     clearStoredEffects: () => { effects.length = 0; return retval }
+   }

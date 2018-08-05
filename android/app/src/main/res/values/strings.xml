@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">YezWallet</string>
+    <string name="facebook_app_id">1815572941865285</string>
+    <string name="fb_login_protocol_scheme">fb1815572941865285</string>
+</resources>

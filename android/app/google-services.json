@@ -1,0 +1,115 @@
+{
+  "project_info": {
+    "project_number": "117276209951",
+    "firebase_url": "https://neowallet-723e2.firebaseio.com",
+    "project_id": "neowallet-723e2",
+    "storage_bucket": "neowallet-723e2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:117276209951:android:e83df5d3dbcf05b9",
+        "android_client_info": {
+          "package_name": "com.neonwallet"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "117276209951-r3t4dgdkmjuc94nlf90l0otva6hrh50f.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.neonwallet",
+            "certificate_hash": "c7e0aa8d8b78d0d2261644eb912d34fe21e6aa8f"
+          }
+        },
+        {
+          "client_id": "117276209951-o4ibhr0f43qlboheqc3v355u9k1llapg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.neonwallet",
+            "certificate_hash": "0cfd20cde1e2308129c0ee7e214dbaa26e400905"
+          }
+        },
+        {
+          "client_id": "117276209951-ful90j3hsiepbktoim2epa1vfbick9n0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.neonwallet",
+            "certificate_hash": "6c29a8dd85a99b10a31757bc9548a8951e326697"
+          }
+        },
+        {
+          "client_id": "117276209951-3hoo68sjjlq0umef3a0c6cc8ifkqd8f1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC7LdGx3FvdfDx0wTgkcrupcoBt6TfskyA"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "117276209951-3hoo68sjjlq0umef3a0c6cc8ifkqd8f1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:117276209951:android:2ec4eec8e8aa9577",
+        "android_client_info": {
+          "package_name": "com.yezwallet"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "117276209951-l9c65fccnqr653o6l7loolt3r9tc85he.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.yezwallet",
+            "certificate_hash": "6c29a8dd85a99b10a31757bc9548a8951e326697"
+          }
+        },
+        {
+          "client_id": "117276209951-3hoo68sjjlq0umef3a0c6cc8ifkqd8f1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC7LdGx3FvdfDx0wTgkcrupcoBt6TfskyA"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "117276209951-3hoo68sjjlq0umef3a0c6cc8ifkqd8f1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
