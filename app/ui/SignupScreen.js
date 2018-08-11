@@ -254,7 +254,7 @@ class SignupScreen extends React.Component {
                         </View>
                         <TextInput
                             style={[styles.input, styles.whiteFont]}
-                            onSubmitEditing={() => this.passwordInput.focus()}
+                            onSubmitEditing={() => this.password.focus()}
                             ref={(el) => { this.email = el; }}
                             onChangeText={(email) => this.setState({ email })}
                             value={this.state.email}
@@ -275,6 +275,7 @@ class SignupScreen extends React.Component {
                         </View>
                         <TextInput
                             secureTextEntry={true}
+                            onSubmitEditing={() => this.phone.focus()}
                             style={[styles.input, styles.whiteFont]}
                             ref={(el) => { this.password = el; }}
                             onChangeText={(password) => this.setState({ password })}
@@ -354,11 +355,6 @@ class SignupScreen extends React.Component {
         if (!generating && wif != null && !loggedIn) {
             this.saveWallet()
         }
-
-        // if (this.state.showPop) {
-        //     this._renderPop();
-        // }
-
         return (
             <View style={styles.container}>
 
@@ -375,8 +371,6 @@ class SignupScreen extends React.Component {
                 {this._create_user()}
             </View>
         );
-
-
     }
 }
 

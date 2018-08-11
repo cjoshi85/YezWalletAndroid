@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, TextInput, StyleSheet } from 'react-native'
+import { View, TextInput, StyleSheet,AsyncStorage } from 'react-native'
 import Button from '../components/Button'
 import Spinner from 'react-native-loading-spinner-overlay';
 import QRCodeScanner from 'react-native-qrcode-scanner';
@@ -56,6 +56,12 @@ class LoginEncryptedKey extends React.Component {
         //setTimeout(function() { this.login(); }, 2000);
     }
 
+    saveKey=async ()=>{
+        await AsyncStorage.setItem('user_id',this.state.uid) 
+        await AsyncStorage.setItem('encryptedWIF',this.state.encryptedWIF)
+        await AsyncStorage.setItem('passphrase',this.state.passphrase)
+     }
+
     login=()=>{
         const {encryptedWIF,passphrase,uid} = this.state
         this.props.wallet.login(passphrase,encryptedWIF,uid)
@@ -108,10 +114,9 @@ class LoginEncryptedKey extends React.Component {
 
     render() {
 
-        // if(this.props.loggedIn){
-        //   //  alert('Logged In')
-        //     this.updateState()
-        // }
+        if(this.props.loggedIn){
+            this.saveKey()
+        }
         
         return (
             <View style={styles.container}>

@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, TextInput, StyleSheet } from 'react-native'
+import { View, TextInput, StyleSheet,AsyncStorage } from 'react-native'
 import Button from '../components/Button'
 import { DropDownHolder } from '../utils/DropDownHolder'
 import QRCodeScanner from 'react-native-qrcode-scanner';
@@ -10,7 +10,6 @@ import { connect } from 'react-redux'
 import { ActionCreators } from '../actions'
 import { isValidWIF } from '../api/crypto'
 import * as firebase from "firebase";
-
 class LoginPrivateKey extends React.Component {
     constructor(props){
         super(props)
@@ -28,6 +27,11 @@ class LoginPrivateKey extends React.Component {
         this.setState({
             uid:user.uid
         })
+     }
+
+     saveKey=async ()=>{
+        await AsyncStorage.setItem('user_id',this.state.uid) 
+        await AsyncStorage.setItem('wif',this.state.privateKey)
      }
  
     _walletLogin() {
@@ -60,6 +64,9 @@ class LoginPrivateKey extends React.Component {
     };
 
     render() {
+        if(this.props.loggedIn){
+            this.saveKey()
+        }
         return (
             <View style={styles.container}>
                 <View style={styles.loginForm}>
@@ -115,7 +122,9 @@ const styles = StyleSheet.create({
 })
 
 function mapStateToProps(state, ownProps) {
-    return {}
+    return {
+        loggedIn:state.wallet.loggedIn
+    }
 }
 
 const mapDispatchToProps = dispatch => {

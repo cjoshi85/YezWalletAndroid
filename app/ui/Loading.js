@@ -26,29 +26,8 @@ export default class Loading extends React.Component {
       ClientId: '117276209951-r3t4dgdkmjuc94nlf90l0otva6hrh50f.apps.googleusercontent.com'
     })
 
-    // const user = await firebase.auth().currentUser
-
-    // if (user.uid) {
-    //  alert(user.uid)
-    // }
-
-    // else{
-    //   alert('sorrt')
-    // }
-
-    //  firebase.auth().onAuthStateChanged(user => {
-    //   if (user) {
-        
-    //     this.props.navigation.navigate('Dashboard')
-    //    }
-   
-    //    else{
-         
-    //      this.props.navigation.navigate('Login')
-    //    }
-    // //   this.props.navigation.navigate(user ? 'Dashboard' : 'Login')
-    //  })
     const response=await this._retrieveData()
+    debugger
     if(response){
       this.props.navigation.navigate('Dashboard')
     }
@@ -61,10 +40,12 @@ export default class Loading extends React.Component {
 
   _retrieveData = async () => {
     try {
-      const value = await AsyncStorage.getItem('user_id');
-      if (value !== null) {
-        // We have data!!
-        //alert('Value'+value)
+      const user_id = await AsyncStorage.getItem('user_id');
+      const privateKey=await AsyncStorage.getItem('wif');
+      const encryptedKey=await AsyncStorage.getItem('encryptedWIF');
+      const passphrase=await AsyncStorage.getItem('passphrase');
+      debugger
+      if (user_id &&(privateKey||(encryptedKey&&passphrase))) {
         return true
       }
      } catch (error) {

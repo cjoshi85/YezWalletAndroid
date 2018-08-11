@@ -7,7 +7,6 @@ import co.apptailor.googlesignin.RNGoogleSigninPackage;
 import com.facebook.reactnative.androidsdk.FBSDKPackage;
 import io.invertase.firebase.RNFirebasePackage;
 import org.reactnative.camera.RNCameraPackage;
-import co.airbitz.fastcrypto.RNFastCryptoPackage;
 import com.crypho.scrypt.RNScryptPackage;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
@@ -39,7 +38,6 @@ protected static CallbackManager getCallbackManager() {
             new RNGoogleSigninPackage(),
             new RNFirebasePackage(),
             new RNCameraPackage(),
-            new RNFastCryptoPackage(),
             new RNScryptPackage()
       );
     }

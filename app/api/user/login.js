@@ -94,6 +94,15 @@ try{
         console.error(error)
     }
   }
+
+  export async function getCurrencySymbol(userId){
+    let currencyPath="/countrycode/"+ userId;
+    var snapshot=await firebase.database().ref(currencyPath).once('value')
+    if(snapshot.val()){
+        return snapshot.val().symbol
+    }
+    return '$'
+}
   
   export async function getCurrencyCode(userId){
 
@@ -137,11 +146,12 @@ try{
     return toggleRole
 }
 
-  export async function updateCurrency(userId,currency){
+  export async function updateCurrency(userId,currency,symbol){
     let currencyPath="/countrycode/"+userId;
     debugger
     firebase.database().ref(currencyPath).update({
-        countrycode:currency
+        countrycode:currency,
+        symbol: symbol
     })
 
     return currency

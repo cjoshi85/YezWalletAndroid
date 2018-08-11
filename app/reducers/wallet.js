@@ -58,6 +58,7 @@ export default function order(state = {}, action) {
                 encryptedWIF:action.data.encryptedWIF,
                 roleType: action.roleType,
                 currencyCode:action.currencyCode,
+                symbol:action.symbol,
                 userId:action.userId,
                 decrypting: false,
                 loggedIn: true,
@@ -144,21 +145,12 @@ export default function order(state = {}, action) {
                 ...state,
                 updateSendIndicators: false
             }
-
         case actions.wallet.UPDATE_CURRENCY_SUCCESS:
-            return{
-                ...state,
-                currencyCode:action.currency
-                }
-
-        case actions.wallet.UPDATE_CURRENCY_SUCCESS:
-            return{
-                ...state,
-                passphrase:action.data.passphrase,
-                wif: action.data.wif,
-                address: action.data.address,
-                encryptedWIF: action.data.encryptedWIF,
-             }
+        return{
+            ...state,
+            currencyCode:action.currency,
+            symbol:action.symbol
+        }
 
         case actions.wallet.TOGGLE_USER_SUCCESS: {
                 debugger

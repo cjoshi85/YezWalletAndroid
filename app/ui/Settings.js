@@ -5,6 +5,7 @@ import { bindActionCreatorsExt } from '../utils/bindActionCreatorsExt'
 import { ActionCreators } from '../actions'
 import GeneratedKeysView from '../components/GeneratedKeysView'
 import UserSwitchButton from '../containers/UserSwitchButton'
+import * as firebase from "firebase";
 
 
 class Settings extends React.Component{
@@ -32,11 +33,20 @@ class Settings extends React.Component{
             currency:'',
             showWallet:false,
             passphrase:'',
-            showOption:false
+            showOption:false,
+            currencies:{}
         }
     }
 
-    componentDidMount(){
+    async componentDidMount(){
+        var snap=await firebase.database().ref('currencies/').once('value')
+      
+        if(snap.val()){
+            this.setState({
+            currencies:snap.val()
+            })
+        }
+          
         this.props.navigation.setParams({ updateState: this._updateState });
         this.props.navigation.setParams({ getPassphrase: this._getPassphrase });
         if(this.props.roleType ==='Advance'){
@@ -93,19 +103,25 @@ class Settings extends React.Component{
         );
       }
      
-      GetItem (item) {
-       
-      this.props.wallet.updateCurrency(item)
+      GetItem (code,symbol) {    
+      this.props.wallet.updateCurrency(code,symbol)
       this.setState({
           updateCurrency:false
-      })
-     
+      })  
       }
 
     render(){
-        const currencies = ['AUD', 'BRL', 'CAD', 'CHF', 'CLP', 'CNY', 'CZK', 'DKK', 'EUR', 'GBP', 'HKD', 'HUF', 'IDR', 'ILS', 'INR', 'JPY', 'KRW', 'MXN', 'MYR', 'NOK', 'NZD', 'PHP', 'PKR', 'PLN', 'RUB', 'SEK', 'SGD', 'THB', 'TRY', 'TWD', 'USD', 'ZAR']
+        //const currencies = ['AUD', 'BRL', 'CAD', 'CHF', 'CLP', 'CNY', 'CZK', 'DKK', 'EUR', 'GBP', 'HKD', 'HUF', 'IDR', 'ILS', 'INR', 'JPY', 'KRW', 'MXN', 'MYR', 'NOK', 'NZD', 'PHP', 'PKR', 'PLN', 'RUB', 'SEK', 'SGD', 'THB', 'TRY', 'TWD', 'USD', 'ZAR']
         const{wif,encryptedWIF,passphrase,address,uid,name}=this.props
-        const background = require("../img/background.png");
+        const {currencies}=this.state     
+
+        var data = Object.keys(currencies).map(key=> {
+            return {
+              code: key,
+              symbol: currencies[key].symbol
+            };
+          });
+        console.log(data)
         if(!this.state.updateCurrency && !this.state.showWallet){
         return(
             <View style={styles.dataInputView}>
@@ -129,13 +145,11 @@ class Settings extends React.Component{
         return(
             <View style={styles.MainContainer}>
   
-       <FlatList
-       
-          data={ currencies }
-          
+       <FlatList     
+          data={ data }
           ItemSeparatorComponent = {this.FlatListItemSeparator}
- 
-          renderItem={({item}) => <Text style={styles.item} onPress={this.GetItem.bind(this, item)} > {item} </Text>}
+          renderItem={({item}) => <Text style={styles.item} onPress={this.GetItem.bind(this, item.code,item.symbol)} > {item.code}({item.symbol}) </Text>}
+          keyExtractor={(item, index) => index}
          />
     
     

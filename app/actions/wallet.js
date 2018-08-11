@@ -118,10 +118,11 @@ export function resetState() {
     }
 }
 
-export function updateCurrency(currency){
+export function updateCurrency(currency,symbol){
     return{
         type:UPDATE_CURRENCY,
-        currency
+        currency,
+        symbol
     }
 }
 

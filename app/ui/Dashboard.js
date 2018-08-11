@@ -18,37 +18,50 @@ class Dashboard extends React.Component {
       generating: true,
       uid: "",
       passphrase: "",
-      wif: ""
+      privateKey: "",
+      encryptedKey:""
     };
   }
 
   async componentDidMount() {
   
-   const value = await AsyncStorage.getItem('user_id')
-
-   // alert('Entered into Dashboard')
-
-    if (value) {
+    const user_id = await AsyncStorage.getItem('user_id');
+    const privateKey=await AsyncStorage.getItem('wif');
+    const encryptedKey=await AsyncStorage.getItem('encryptedWIF');
+    const passphrase=await AsyncStorage.getItem('passphrase');
+    debugger
+    if (user_id && privateKey) {
       this.setState({
-        uid: value,
+        uid: user_id,
+        privateKey,
         generating: false
       })
+    }
+
+    else if(user_id && encryptedKey && passphrase){
+        this.setState({
+          uid: user_id,
+          encryptedKey,
+          passphrase,
+          generating: false
+        })
     }
 
   }
 
   async _walletLogin() {
-
-    //alert('uid'+this.state.uid)
-
+    const {uid,privateKey,encryptedKey,passphrase}=this.state
+    debugger
     try {
-      //alert('wallet exists')
-      const data = await Database.listenwalletData(this.state.uid)
-      if (data) {
-        this.props.wallet.login(data.passphrase, data.wif)
+      if (uid && privateKey) {
+        this.props.wallet.loginWithPrivateKey(privateKey,uid)
         this.setState({
-          wif: data.wif,
-          passphrase: data.passphrase,
+          generating: true
+        })
+      }
+      else if(user_id && encryptedKey && passphrase){
+        this.props.wallet.login(encryptedKey,passphrase,uid)
+        this.setState({
           generating: true
         })
       }

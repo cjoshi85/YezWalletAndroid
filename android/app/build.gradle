@@ -156,7 +156,7 @@ dependencies {
 }
 
     
-    implementation project(':react-native-fast-crypto')
+    // implementation project(':react-native-fast-crypto')
     implementation project(':react-native-scrypt')
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation "com.android.support:appcompat-v7:23.0.1"

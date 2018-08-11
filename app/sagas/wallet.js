@@ -15,7 +15,7 @@ import { decryptWIF, generateEncryptedWIF,encryptWIF,loginWIF } from '../api/cry
 
 import { ActionConstants as actions } from '../actions'
 import { DropDownHolder } from '../utils/DropDownHolder'
-import {currentuser,getCurrencyCode,getUserRole,getUserData,updateUserRole,updateCurrency,getAllAdress,updatePassphrase} from '../api/user/login'
+import {currentuser,getCurrencyCode,getUserRole,getUserData,updateUserRole,getCurrencySymbol,updateCurrency,getAllAdress,updatePassphrase} from '../api/user/login'
 import { isBlockedByTransportSecurityPolicy, generateEncryptedWif } from '../utils/walletStuff'
 
 let bgTaskHandler = null
@@ -75,10 +75,13 @@ export function* watchImportNEP6() {
 export function* watchUpdateCurrency(){
     while(true){
         const params=yield take(actions.wallet.UPDATE_CURRENCY)
+        const symbol=params.symbol
         const wallet = yield select(getWallet)
-        const currency=yield call(updateCurrency,wallet.userId,params.currency)
+        const currency=yield call(updateCurrency,wallet.userId,params.currency,symbol)
+        debugger
+        yield put({type:actions.wallet.UPDATE_CURRENCY_SUCCESS,currency,symbol})
         yield call(retrieveMarketPrice,currency)
-        yield put({type:actions.wallet.UPDATE_CURRENCY_SUCCESS,currency})
+        
     }
 }
 
@@ -157,11 +160,17 @@ function* decryptWalletKeys(encryptedKey, passphrase,userId) {
         if(!userId){
             userId=yield call(currentuser)
             }      
-        // const roleType=yield call(getUserRole,userId)
-        // const currencyCode=yield call(getCurrencyCode,userId)        
-        const roleType='Regular'
-        const currencyCode='USD'
-        yield put({ type: actions.wallet.LOGIN_SUCCESS, data:result,roleType,currencyCode,userId,passphrase })
+        const roleType=yield call(getUserRole,userId)
+        const currencyCode=yield call(getCurrencyCode,userId) 
+        const symbol=yield call(getCurrencySymbol,userId)    
+        const getAllAddress=yield call(getAllAdress,userId)
+        debugger
+        if(!getAllAddress.includes(result.address))
+        {
+            debugger
+            throw new Error('Wallet does not belong to your account')
+        }   
+        yield put({ type: actions.wallet.LOGIN_SUCCESS, data:result,roleType,currencyCode,symbol,userId,passphrase })
         yield put({ type: actions.wallet.TOGGLE_USER_SUCCESS,roleType })
     } catch (error) {
         yield put({ type: actions.wallet.LOGIN_ERROR, error })
@@ -341,6 +350,7 @@ function* loginWithWif(wif,userId){
         //console.error('Username===>'+userName)
         const roleType=yield call(getUserRole,userId)
         const currencyCode=yield call(getCurrencyCode,userId)
+        const symbol=yield call(getCurrencySymbol,userId)
         const getAllAddress=yield call(getAllAdress,userId)
         debugger
         if(!getAllAddress.includes(result.address))
@@ -348,7 +358,7 @@ function* loginWithWif(wif,userId){
             debugger
             throw new Error('Wallet does not belong to your account')
         }
-        yield put({ type: actions.wallet.LOGIN_SUCCESS, data:result,roleType,currencyCode,userName,userId })
+        yield put({ type: actions.wallet.LOGIN_SUCCESS, data:result,roleType,currencyCode,userName,userId,symbol })
         yield put({ type: actions.wallet.TOGGLE_USER_SUCCESS,roleType })
         debugger
     }catch(error){

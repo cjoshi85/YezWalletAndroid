@@ -169,38 +169,12 @@ acceptPassphrase=async ()=>{
 
   }
 
-  _storeData = async (uid) => {
-    
-    try {
-      await AsyncStorage.setItem('user_id', uid);
-    } catch (error) {
-      alert(error)// Error saving data
-    }
-  }
-
-
-
   _generateKeys(pw) {
 
     this.props.wallet.create(pw,null,'Default')
 
   }
 
-
-
-  _renderBarIndicator() {
-    // don't use until key generation duration becomes less than 1/60 or it will block the animation
-    // <View style={{ flexDirection: 'row' }}>
-    //     <BarIndicator color="#236312" count={5} />
-    // </View>
-    return (
-
-      <View style={styles.indicatorView}>
-        <Text style={styles.indicatorText}>Generating...</Text>
-      </View>
-
-    )
-  }
 
   _saveKey(key_name) {
     this.props.settings.saveKey(this.props.encryptedWIF, key_name)
@@ -254,8 +228,8 @@ else{
     this.props.navigation.navigate('DisplayWalletAccount')
   }
 
-  saveUserData = () => {
-    
+  saveUserData = async() => {
+    await AsyncStorage.setItem('user_id',this.state.uid)
     Database.setUserData(this.state.uid,this.state.name,this.state.email, this.state.phone, "Regular",'USD');
   }
 
@@ -366,7 +340,7 @@ else{
                 <Image source={personIcon} style={styles.icon} resizeMode="contain" />
               </View>
               <TextInput
-                onSubmitEditing={() => this.passwordInput.focus()}
+                onSubmitEditing={() => this.password.focus()}
                 ref={(el) => { this.email = el; }}
                 onChangeText={(email) => this.setState({ email })}
                 value={this.state.email}
@@ -445,9 +419,6 @@ else{
                     onCancel={() => this.acceptPassphrase()}>
                     {this._renderPop()}
                 </MaterialDialog>
-        {/* <ActivityIndicator
-               animating = {this.state.loading}
-               size = "large"/> */}
         <Spinner visible={this.state.loading} textStyle={{ color: '#FFF' }} />
         {this._createWallet()}
       </View>

@@ -112,7 +112,8 @@ class AssetSendForm extends React.Component {
 
    render(){
         const background = require("../img/background.png");
-        const {neo,neoPrice,currencyCode,passphrase}=this.props
+        const {neo,neoPrice,currencyCode,passphrase,symbol}=this.props
+        debugger
         const neoValue = neoPrice && neo && neo !== '0'
          ? toBigNumber(neoPrice).multipliedBy(neo) : toBigNumber(0)
 
@@ -212,7 +213,7 @@ class AssetSendForm extends React.Component {
                             <FAIcons name="refresh" size={24} style={styles.refreshButton} />
                         </View>
                         <View style={styles.coinCountView}>
-                            <Text style={styles.coinCountLabel}>${currencyCode}</Text>
+                            <Text style={styles.coinCountLabel}>{symbol}</Text>
                             <Text style={[styles.coinCountValue, this.props.pendingBlockConfirm ? styles.pendingConfirm : null]}>
                             {invalidPrice ? '-' :formatFiat(neoValue)}
                             </Text>
@@ -401,7 +402,8 @@ function mapStateToProps(state, ownProps) {
         updateAfterSend: state.wallet.updateSendIndicators,
         passphrase: state.wallet.passphrase,
         encryptedWIF: state.wallet.encryptedWIF,
-        created:state.wallet.created
+        created:state.wallet.created,
+        symbol:state.wallet.symbol
     }
 }
 

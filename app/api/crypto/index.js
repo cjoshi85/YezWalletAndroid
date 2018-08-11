@@ -13,7 +13,7 @@ import { ec } from 'elliptic'
 import long from 'long'
 import { getAssetId } from '../network'
 import { XOR, reverse } from './utils'
-import crypto from 'react-native-fast-crypto';
+//import crypto from 'react-native-fast-crypto';
 
 const NEP_HEADER = '0142'
 const NEP_FLAG = 'e0'

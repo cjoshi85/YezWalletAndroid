@@ -77,6 +77,9 @@ class WalletInfo extends React.Component {
 
 
         await AsyncStorage.removeItem('user_id');
+        await AsyncStorage.removeItem('wif');
+        await AsyncStorage.removeItem('encryptedWIF');
+        await AsyncStorage.removeItem('passphrase');
      //   alert('Done'+user)
         this.props.wallet.logout()
         // this.props.navigation.navigate('Loading')
@@ -88,9 +91,6 @@ class WalletInfo extends React.Component {
     }
 
     }
-
-
-
     _claim() {
         // avoid unnecessary network call
         if (this.props.claimAmount > 0) {
@@ -107,54 +107,6 @@ class WalletInfo extends React.Component {
         )
     }
 
-    // render() {
-    //     const claimButtonTitle = 'Claim ' + `${this.props.claimAmount}` + ' GAS'
-    //     const neoBalance = nDecimalsNoneZero(this.props.neo, 3)
-    //     const gasBalance = nDecimalsNoneZero(this.props.gas, 3)
-    //     return (
-    //         <View style={styles.container}>
-    //             <AssetSendForm />
-    //             <View style={styles.addressView}>
-    //                 <Text style={styles.textAddress}>Your Public Neo Address:</Text>
-    //                 <Text style={styles.textAddress}>{this.props.address}</Text>
-    //             </View>
-    //             <Spacer />
-    //             <View style={styles.content}>
-    //                 <View style={styles.coinCountView}>
-    //                     <Text style={styles.coinCountLabel}>NEO</Text>
-    //                     <Text style={[styles.coinCountValue, this.props.pendingBlockConfirm ? styles.pendingConfirm : null]}>
-    //                         {neoBalance}
-    //                     </Text>
-    //                 </View>
-    //                 <View style={styles.refreshButtonView}>
-    //                     <FAIcons name="refresh" size={24} style={styles.refreshButton} />
-    //                 </View>
-    //                 <View style={styles.coinCountView}>
-    //                     <Text style={styles.coinCountLabel}>GAS</Text>
-    //                     <Text style={[styles.coinCountValue, this.props.pendingBlockConfirm ? styles.pendingConfirm : null]}>
-    //                         {gasBalance}
-    //                     </Text>
-    //                 </View>
-    //             </View>
-    //             <View style={styles.fiatView}>
-    //                 <Text style={styles.fiatValue}>US ${this.props.price.toFixed(2)}</Text>
-    //             </View>
-    //             <View style={styles.pendingView}>
-    //                 <Text style={this.props.pendingBlockConfirm ? styles.pendingConfirm : styles.invisible}>
-    //                     (Pending block confirmation)
-    //                 </Text>
-    //             </View>
-    //             <Spacer />
-    //             {this.state.claimStarted && !this.props.gasClaimConfirmed ? (
-    //                 <View style={styles.claimProgress}>
-    //                     <ClaimProgressIndicator />
-    //                 </View>
-    //             ) : (
-    //                 <Button title={claimButtonTitle} onPress={this._claim.bind(this)} />
-    //             )}
-    //         </View>
-    //     )
-    // }
 }
 
 const styles = StyleSheet.create({
