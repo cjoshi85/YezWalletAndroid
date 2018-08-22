@@ -9,6 +9,7 @@ import { ActionCreators } from '../actions'
 
 class UserSwitchButton extends React.Component {
     render() {
+        
         return (
             <TouchableOpacity
                 onPress={() => {

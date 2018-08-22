@@ -43,8 +43,7 @@ const routeConfiguration = {
         screen: Dashboard,
         navigationOptions: {
             ...defaultOptions,
-            
-            
+            headerLeft: null,            
             headerTitle: 'Dashboard'
         }
     },

@@ -1,6 +1,7 @@
 import React from 'react'
 import { View, Text, FlatList, StyleSheet } from 'react-native'
 import { connect } from 'react-redux'
+import moment from 'moment';
 import { nDecimalsNoneZero } from '../../utils/walletStuff'
 import { isZero } from '../../core/math';
 import { ASSETS } from '../../core/constants';
@@ -13,33 +14,24 @@ class TransactionHistory extends React.Component {
     _renderRow(item) {
         const tx = item.item
         debugger
+        const date=moment(new Date(tx.time*1000)).format('MMMM Do YYYY, h:mm:ss a')
         return (
             <View style={styles.txRow}>
                 <View style={styles.txId}>
-                    <Text>{tx.txid.slice(0, 15)}..</Text>
+                    <Text style={styles.txText}>{tx.txid}</Text>
+                    </View>
+                    <View style={styles.txId}>
+                    <Text style={styles.bigText}>{tx.amount} {tx.asset}</Text>
+                    </View>
+                    <View style={styles.txId}>
+                    <Text style={styles.bigText}>{date}</Text>
                 </View>
-                {this.renderAmount(tx)}
+
+                {/* {this.renderAmount(tx)} */}
             </View>
         )
     }
 
-    renderAmount=(tx)=>{
-        if(!isZero(tx[ASSETS.NEO])||isZero(tx[ASSETS.GAS])){
-        return(
-            <View style={styles.txValue}>
-                <Text style={styles.bigText}>{nDecimalsNoneZero(tx[ASSETS.NEO], 6)}</Text>
-                <Text style={styles.bigText}>YEZ</Text>
-            </View>
-        )
-    }
-        else if(!isZero(tx[ASSETS.GAS])){
-            <View style={styles.txValue}>
-                <Text style={styles.bigText}>{nDecimalsNoneZero(tx[ASSETS.GAS], 6)}</Text>
-                <Text style={styles.bigText}>{ASSETS.GAS}</Text>
-            </View>
-        }
-    }
-    
 
     _renderSeparator = () => {
         return (
@@ -53,8 +45,6 @@ class TransactionHistory extends React.Component {
     }
 
     render() {
-        const background = require("../../img/background.png");
-        debugger
         return (
             <View>
                 
@@ -72,19 +62,18 @@ class TransactionHistory extends React.Component {
 
 const styles = StyleSheet.create({
     txRow: {
-        flexDirection: 'row',
-        marginHorizontal: 30,
-        height: 48
+        marginHorizontal: 5,
+        height: 100
     },
     txId: {
-        flex: 1,
+        flex:1,
         flexDirection: 'row',
-        justifyContent: 'flex-start',
-        alignItems: 'center'
+        alignItems: 'center',     
     },
     txText: {
-        fontSize: 10,
-        fontFamily: 'courier new'
+        paddingTop:10,
+        fontSize: 15,
+        fontFamily: 'courier'
     },
     txValue: {
         flexDirection: 'row',
@@ -92,9 +81,10 @@ const styles = StyleSheet.create({
         alignItems: 'center'
     },
     bigText: {
-        fontSize: 20,
-        marginLeft: 5,
-        fontFamily: 'courier'
+        paddingTop:5,
+        fontSize: 15,
+        fontFamily: 'courier',
+        fontWeight: "bold"
     }
 })
 

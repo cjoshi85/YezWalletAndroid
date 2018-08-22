@@ -54,18 +54,23 @@ class CreateWallet extends React.Component {
 
    async _generateKeys() {
         
-        this.setState({
-            creating:true
-        })
+        
         const pw1 = this.state.pw1
         const pw2 = this.state.pw2
 //        const wif = this.txtPrivateKey && this.txtPrivateKey._lastNativeText
-        
+        const validPassword=await isValidPassphrase(pw1, pw2)
+        const validName=await isValidName(this.props.userId,this.state.name)
 
-        if (isValidPassphrase(pw1, pw2)) {
-            if(isValidName(this.state.name)){
-                            
-               result=await generateEncryptedWIF(pw1)
+        if (validPassword) {
+            
+            if(validName){
+
+                this.setState({
+                    creating:true
+                })
+
+                setTimeout(async()=>{
+                result=await generateEncryptedWIF(pw1)
 
                if(result.passphrase){
                
@@ -76,8 +81,17 @@ class CreateWallet extends React.Component {
                 })
                 Database.setWalletData(this.props.userId, result.address, this.state.name);
         }
+                },2000)
+                            
+               
                
     }
+    }
+    else{
+        this.setState({
+            created:false,
+            creating:false
+        })
     }
 }
 
@@ -112,6 +126,7 @@ class CreateWallet extends React.Component {
                             placeholder="Enter passphrase here"
 							autoCorrect={false}
                             placeholderTextColor="#00000"
+                            secureTextEntry={true}
                         />
 						
 						<TextInput
@@ -122,6 +137,7 @@ class CreateWallet extends React.Component {
                             placeholder="Repeat passphrase here"
 							autoCorrect={false}
                             placeholderTextColor="#00000"
+                            secureTextEntry={true}
                         />
 
                         <TextInput
@@ -159,12 +175,12 @@ class CreateWallet extends React.Component {
 
     render() {
        const { generating, wif, passphrase, address, encryptedWIF,uid,name } = this.props
-        const {data}=this.state
+        const {data,creating,created}=this.state
         return (
             <View style={styles.container}>
-                {!generating? this._renderPassphraseEntry() : null}
-                {generating ? this._renderBarIndicator() : null}
-                {data.passphrase && !generating ? (
+                {!created && !data.passphrase ? this._renderPassphraseEntry() : null}
+                {creating ? this._renderBarIndicator() : null}
+                {data.passphrase && !creating ? (
                     <GeneratedKeysView
                         name={this.state.name}
                         wif={data.wif}

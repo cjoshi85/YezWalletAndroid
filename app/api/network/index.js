@@ -1,6 +1,7 @@
 import request from './request'
 import axios from 'axios'
-import { api, rpc } from '@cityofzion/neon-js'
+import { api, rpc,wallet,u,sc } from '@cityofzion/neon-js'
+import Neon from '@cityofzion/neon-js'
 import {
     getAccountFromWIF,
     buildContractTransactionData,
@@ -18,34 +19,57 @@ import { reverse } from '../crypto/utils'
 export const NEO_ID = 'c56f33fc6ecfcd0c225c4ab356fee59390af8560be0e930faebe74a6daff7c9b'
 export const GAS_ID = '602c79718b16e442de58778e148d0b1084e3b2dffd5de6b7b16cee7969282de7'
 
-export async function getBalance(net,address) {
+export async function getBalance(net,address,wif) {
     try{
-        debugger
+        // const assetBalances = await api.getBalanceFrom({ net, address }, api.neoscan)
+        // const { assets } = assetBalances.balance
         
-        const assetBalances = await api.getBalanceFrom({ net, address }, api.neoscan)
-        const { assets } = assetBalances.balance
+        // // The API doesn't always return NEO or GAS keys if, for example, the address only has one asset
+        // const neoBalance = assets.NEO ? assets.NEO.balance.toString() : '0'
+        // const gasBalance = assets.GAS ? assets.GAS.balance.round(COIN_DECIMAL_LENGTH).toString() : '0'
         
-        // The API doesn't always return NEO or GAS keys if, for example, the address only has one asset
-        const neoBalance = assets.NEO ? assets.NEO.balance.toString() : '0'
-        const gasBalance = assets.GAS ? assets.GAS.balance.round(COIN_DECIMAL_LENGTH).toString() : '0'
-        
-        return { [ASSETS.NEO]: neoBalance, [ASSETS.GAS]: gasBalance }
+        // return { [ASSETS.NEO]: neoBalance, [ASSETS.GAS]: gasBalance }
+
+        const config = {
+            net,
+            url:'https://seed1.neo.org:20331',
+            script: Neon.create.script({
+                scriptHash: 'ae566e59ab36c5bb298615e4263e621bf93a2ad1',
+                operation: 'balanceOf',
+                args: [Neon.u.reverseHex(wallet.getScriptHashFromAddress(address))]
+              }),
+            address:address,
+            privateKey:wif,
+            gas: 0
+          }
+          const res=await api.doInvoke({
+            ...config
+          }, api.neoscan)
+
+          const assets=res.balance.assets
+      
+          //console.log(assets['CONTRACT TOKEN X'].balance.toString())
+          const neoBalance = assets.NEO ? assets.NEO.balance.toString() : '0'
+          const yezBalance = assets['YEZCOIN'] ? assets['YEZCOIN'].balance.toString() : '0'
+          
+          const gasBalance = assets.GAS ? assets.GAS.balance.round(COIN_DECIMAL_LENGTH).toString() : '0'
+          return { [ASSETS.NEO]: neoBalance, [ASSETS.GAS]: gasBalance,[ASSETS.YEZ]: yezBalance, assets }
+          
+
         }catch(error){
-            alert('GetBalance Error'+error)
-            console.error(error)
             throw error
         }
 }
 
 export async function getWalletDBHeight(net) {
     try{
-        
-        const endpoint = await api.getRPCEndpointFrom({ net }, api.neoscan)
+        // const endpoint = await api.getRPCEndpointFrom({ net }, api.neoscan)
         debugger
+        const endpoint='https://seed1.neo.org:20331'    
         const client = new rpc.RPCClient(endpoint)
         return client.getBlockCount()
         }catch(error){
-            alert('DB Height Error'+error)
+            throw error
         }
 }
 
@@ -59,22 +83,82 @@ function sum (txns, address, asset) {
     }, toBigNumber(0))
   }
 
-export async function getTransactionHistory(net,address) {
+  export async function getAssetName(asset){
     try{
-        const endpoint = api.neoscan.getAPIEndpoint(net)
-      const { data } = await axios.get(`${endpoint}/v1/get_last_transactions_by_address/${address}`)
-      debugger
-    
-      return data.map(({ txid, vin, vouts }) => ({
-        txid,
-        [ASSETS.NEO]: sum(vouts, address, NEO_ID).minus(sum(vin, address, NEO_ID)).toFixed(0),
-        [ASSETS.GAS]: sum(vouts, address, GAS_ID).minus(sum(vin, address, GAS_ID)).toPrecision(COIN_DECIMAL_LENGTH).toString()
-      }))
-    }catch(error){
-        alert('Transaction History error'+error)
-        console.error(error)
-        throw error
+    if(asset==='c56f33fc6ecfcd0c225c4ab356fee59390af8560be0e930faebe74a6daff7c9b'){
+        return 'NEO'
     }
+    else if(asset==='602c79718b16e442de58778e148d0b1084e3b2dffd5de6b7b16cee7969282de7'){
+        return 'GAS'
+    }
+    else if(asset.length==40){
+          const props = {
+        scriptHash: asset, // Scripthash for the contract
+        operation: 'name', // name of operation to perform.
+        args: [] // any optional arguments to pass in. If null, use empty array.
+      }
+      
+      //console.error(wallet.getScriptHashFromAddress(address))
+      const script =await Neon.create.script(props)
+      const res=await rpc.Query.invokeScript(script).execute('https://seed1.neo.org:20331/')
+      return Neon.u.hexstring2str(res.result.stack[0].value)
+     // hexstring2str
+
+      //const value=(Neon.u.Fixed8.fromReverseHex(res.result.stack[0].value))
+      //debugger
+      //return value
+    }
+    return undefined
+}catch(error){
+    throw error
+}
+    
+}
+    
+
+
+export async function getTransactionHistory(net,address,roleType) {
+    try{
+        var i=1
+  const endpoint = api.neoscan.getAPIEndpoint(net)
+  //const { data } = await axios.get(`${endpoint}/v1/get_last_transactions_by_address/${address}`)
+  const res1=await axios.get(`${endpoint}/v1/get_address_abstracts/${address}/1`)
+  const transactions1=res1.data
+  var final=[]
+  //alert(transactions.data.total_pages)
+  while(i<=transactions1.total_pages){
+    const res=await axios.get(`${endpoint}/v1/get_address_abstracts/${address}/${i}`)
+    const transactions=res.data
+    const test=await Promise.all(transactions.entries.map(async({txid,amount,time,asset,address_to})=>({
+        txid,
+        amount:address_to===address?amount:-amount,
+        time,
+        asset:await getAssetName(asset),
+      })))
+
+      if(roleType==='Advance'){
+        for(var x=0;x<test.length;x++){
+            final.push(test[x])
+      }
+      }
+
+      else{
+        for(var x=0;x<test.length;x++){
+            if(test[x].asset==='Yezcoin')
+            final.push(test[x])
+      }      
+      }
+      i++
+  }
+//   return data.map(({ txid, vin, vouts }) => ({
+//     txid,
+//     [ASSETS.NEO]: sum(vouts, address, NEO_ID).minus(sum(vin, address, NEO_ID)).toFixed(0),
+//     [ASSETS.GAS]: sum(vouts, address, GAS_ID).minus(sum(vin, address, GAS_ID)).toPrecision(COIN_DECIMAL_LENGTH).toString()
+//   }))
+        return final
+}catch(error){
+    throw error
+}
 }
 
 export function getClaimAmounts(address) {
@@ -114,26 +198,59 @@ export function getAssetId(assetType) {
  * @return {Promise<Response>} RPC Response
  */
 export async function sendAsset(net,destinationAddress,senderAddress, WIF, assetType, amount) {
-    debugger
+    
     try{
     // const intent = await api.makeIntent({assetType:amount}, destinationAddress)
-    const intent=api.makeIntent(
-        {
-          [assetType]: toNumber(amount)
-        },
-        destinationAddress
-      )
+    // const intent=api.makeIntent(
+    //     {
+    //       [assetType]: toNumber(amount)
+    //     },
+    //     destinationAddress
+    //   )
+    // const config = {
+    //     net:net, // The network to perform the action, MainNet or TestNet.
+    //     address: senderAddress,  // This is the address which the assets come from.
+    //     privateKey: WIF,
+    //     intents: intent
+    //   }
+    //   const result=await api.sendAsset(config)
+    //   debugger
+    //   return result.response
+
+    const scriptHash='ae566e59ab36c5bb298615e4263e621bf93a2ad1'
+      const fromAcct = new wallet.Account(senderAddress)
+      const scriptBuilder = new sc.ScriptBuilder()
+      const toAcct = new wallet.Account(destinationAddress)
+      const intent=[]
+      const args = [
+        u.reverseHex(fromAcct.scriptHash),
+        u.reverseHex(toAcct.scriptHash),
+        sc.ContractParam.byteArray(toNumber(amount), 'fixed8', 8)
+      ]
+      
+
+      scriptBuilder.emitAppCall(scriptHash, 'transfer', args)
+      const script=scriptBuilder.str
+      
+
+
     const config = {
         net:net, // The network to perform the action, MainNet or TestNet.
         address: senderAddress,  // This is the address which the assets come from.
         privateKey: WIF,
-        intents: intent
+        url:'https://seed1.neo.org:20331'
+        //intents: intent
       }
-      const result=await api.sendAsset(config)
-      debugger
+      
+      const result=await api.doInvoke({
+        ...config,
+        intents: intent,
+        script,
+        gas: 0
+      }, api.neoscan)
       return result.response
     }catch(error){
-        alert(error)
+        throw error
     }
 }
 
@@ -176,13 +293,18 @@ export function claimAllGAS(fromWif) {
     })
 }
 
-export function getMarketPriceUSD(currency) {
+export async function getMarketPriceUSD(currency) {
     try{
         symbols = [ASSETS.NEO, ASSETS.GAS]
-        
-        return api.cmc.getPrices(symbols, currency)
+
+    // const price=await api.cmc.getPrices('CTX', currency)
+    // alert(price)
+    //console.log(res.json())
+    const usdPrice=await api.cmc.getPrices(symbols, 'USD')
+    let price=await api.cmc.getPrices(symbols, currency)
+    price['YEZ']=(price.NEO/usdPrice.NEO)*0.20
+    return price
     }catch(error){
-        console.error(error)
         throw error
     }
 }

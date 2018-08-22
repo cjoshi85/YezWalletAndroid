@@ -6,12 +6,12 @@ import { GoogleSignin, GoogleSigninButton } from 'react-native-google-signin';
 import * as firebase from "firebase";
 
 const config = {
-  apiKey: "AIzaSyCYwSK4rexyY6l1N82J4h0bmAY8O-l7t1A",
-  authDomain: "neowallet-723e2.firebaseapp.com",
-  databaseURL: "https://neowallet-723e2.firebaseio.com",
-  projectId: "neowallet-723e2",
-  storageBucket: "neowallet-723e2.appspot.com",
-  messagingSenderId: "117276209951"
+  apiKey: "AIzaSyDk4FAfV958Ht9YnFpBLG3aIcRRBL0Br8Y",
+  authDomain: "yezwallet.firebaseapp.com",
+  databaseURL: "https://yezwallet.firebaseio.com",
+  projectId: "yezwallet",
+  storageBucket: "yezwallet.appspot.com",
+  messagingSenderId: "1001567655720"
 };
 export default class Loading extends React.Component {
 

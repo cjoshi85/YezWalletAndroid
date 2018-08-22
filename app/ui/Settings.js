@@ -4,6 +4,7 @@ import { connect } from 'react-redux'
 import { bindActionCreatorsExt } from '../utils/bindActionCreatorsExt'
 import { ActionCreators } from '../actions'
 import GeneratedKeysView from '../components/GeneratedKeysView'
+import Spinner from 'react-native-loading-spinner-overlay';
 import UserSwitchButton from '../containers/UserSwitchButton'
 import * as firebase from "firebase";
 
@@ -112,7 +113,7 @@ class Settings extends React.Component{
 
     render(){
         //const currencies = ['AUD', 'BRL', 'CAD', 'CHF', 'CLP', 'CNY', 'CZK', 'DKK', 'EUR', 'GBP', 'HKD', 'HUF', 'IDR', 'ILS', 'INR', 'JPY', 'KRW', 'MXN', 'MYR', 'NOK', 'NZD', 'PHP', 'PKR', 'PLN', 'RUB', 'SEK', 'SGD', 'THB', 'TRY', 'TWD', 'USD', 'ZAR']
-        const{wif,encryptedWIF,passphrase,address,uid,name}=this.props
+        const{wif,encryptedWIF,passphrase,address,uid,name,loading}=this.props
         const {currencies}=this.state     
 
         var data = Object.keys(currencies).map(key=> {
@@ -125,6 +126,10 @@ class Settings extends React.Component{
         if(!this.state.updateCurrency && !this.state.showWallet){
         return(
             <View style={styles.dataInputView}>
+
+            <Spinner visible={this.props.loading} />
+
+
                 
                     <TouchableOpacity onPress={() => {this._showWallet()}}>
                         <View style={styles.button}>
@@ -246,7 +251,8 @@ function mapStateToProps(state, ownProps) {
         passphrase: state.wallet.passphrase,
         encryptedWIF: state.wallet.encryptedWIF,
         created:state.wallet.created,
-        roleType:state.wallet.roleType
+        roleType:state.wallet.roleType,
+        loading:state.wallet.loading
     }
 }
 

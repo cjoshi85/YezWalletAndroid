@@ -1,4 +1,5 @@
 import { DropDownHolder } from '../utils/DropDownHolder'
+import {getAllWalletName} from '../api/user/login'
 
 export function isBlockedByTransportSecurityPolicy(error) {
     // Test for iOS policy: "The resource could not be loaded because the App Transport Security policy requires the use of a secure connection."
@@ -36,14 +37,21 @@ export function isValidPassphrase(pw1, pw2) {
     return result
 }
 
-export function isValidName(name){
+export async function isValidName(userId,name){
     var result=false
-    if(name){
+
+    const allWalletNames= await getAllWalletName(userId)
+    debugger
+
+    if(!name){
+        DropDownHolder.getDropDown().alertWithType('error','Error','Name cannot be empty')
+    }
+    else if(allWalletNames.includes(name))
+        {
+            DropDownHolder.getDropDown().alertWithType('error','Error','Wallet already exists with same name')
+        }   
+    else if(name){
         result=true
     }
-    else{
-        DropDownHolder.getDropDown.alertWithType('error','Error','Name cannot be empty')
-    }
-
     return result
 }

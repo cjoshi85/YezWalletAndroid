@@ -2,9 +2,8 @@
 import { ASSETS } from './constants'
 import { toBigNumber } from './math'
 
-export const COIN_DECIMAL_LENGTH = 8
-export const SHORT_DISPLAY_DECIMAL_LENGTH = 4
-
+export const COIN_DECIMAL_LENGTH = 4
+export const SHORT_DISPLAY_DECIMAL_LENGTH = 2
 type ValueType = string | number
 
 export const formatGAS = (

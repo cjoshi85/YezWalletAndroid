@@ -1,6 +1,7 @@
-import React, { Component } from 'react';
+import React from 'react';
 import { StyleSheet, View, TouchableOpacity, ActivityIndicator, StatusBar, Text, TextInput, Image, Button, AsyncStorage, KeyboardAvoidingView } from 'react-native';
-import DatePicker from 'react-native-datepicker'
+//import DatePicker from 'react-native-datepicker'
+import FAIcons from 'react-native-vector-icons/FontAwesome'
 import Database from "./firebase/database";
 import DismissKeyboard from "dismissKeyboard";
 import { DatePickerDialog } from 'react-native-datepicker-dialog'
@@ -19,12 +20,12 @@ class SignupScreen extends React.Component {
 
     componentWillMount() {
         const config = {
-            apiKey: "AIzaSyCYwSK4rexyY6l1N82J4h0bmAY8O-l7t1A",
-            authDomain: "neowallet-723e2.firebaseapp.com",
-            databaseURL: "https://neowallet-723e2.firebaseio.com",
-            projectId: "neowallet-723e2",
-            storageBucket: "neowallet-723e2.appspot.com",
-            messagingSenderId: "117276209951"
+            apiKey: "AIzaSyDk4FAfV958Ht9YnFpBLG3aIcRRBL0Br8Y",
+            authDomain: "yezwallet.firebaseapp.com",
+            databaseURL: "https://yezwallet.firebaseio.com",
+            projectId: "yezwallet",
+            storageBucket: "yezwallet.appspot.com",
+            messagingSenderId: "1001567655720"
         };
         if (!firebase.apps.length) {
             firebase.initializeApp(config);
@@ -61,7 +62,7 @@ class SignupScreen extends React.Component {
 
 
     saveUserData() {
-        Database.setUserData(this.state.uid,this.state.username, this.state.email, this.state.phone,'Regular','USD');
+        Database.setUserData(this.state.uid,this.state.username, this.state.email, this.state.phone,'Regular','USD','$');
 
     }
 
@@ -76,9 +77,8 @@ class SignupScreen extends React.Component {
         });
         try {
             const response = await firebase.auth().createUserWithEmailAndPassword(this.state.email, this.state.password);
-            const dob=moment(this.state.dobText).format('MMDDYYYY')
+            const dob=moment(this.state.dobText).format('DDMMYYYY')
             passphrase = (this.state.username + dob).toString();
-            //  const response=this.props.auth.signupUser(this.state.email, this.state.password,this.state.phone)
             if (response.uid) {
                 this.setState({
                     uid: response.uid,
@@ -87,9 +87,6 @@ class SignupScreen extends React.Component {
                 });
 
                  this.saveUserData()
-                // const dob=moment(this.state.dobText).format('MMDDYYYY')
-                // this.passphrase = (this.state.username + dob).toString();
-                // await this._generateKeys(this.passphrase)
             }
         } catch (error) {
             alert(error)
@@ -209,11 +206,11 @@ class SignupScreen extends React.Component {
 
     _create_user() {
         const background = require("../img/background.png");
-        const backIcon = require("../img/back.png");
-        const personIcon = require("../img/signup_person.png");
-        const lockIcon = require("../img/signup_lock.png");
-        const emailIcon = require("../img/signup_email.png");
-        const birthdayIcon = require("../img/signup_birthday.png");
+        // const backIcon = require("../img/back.png");
+        // const personIcon = require("../img/signup_person.png");
+        // const lockIcon = require("../img/signup_lock.png");
+        // const emailIcon = require("../img/signup_email.png");
+        // const birthdayIcon = require("../img/signup_birthday.png");
 
         return (
             <View style={styles.container}>
@@ -225,11 +222,8 @@ class SignupScreen extends React.Component {
 
                  <View style={styles.inputContainer}>
                         <View style={styles.iconContainer}>
-                            <Image
-                                source={emailIcon}
-                                style={styles.inputIcon}
-                                resizeMode="contain"
-                            />
+                        
+                            <FAIcons name="user" size={25} style={styles.inputIcon} color='white'/>
                         </View>
                         <TextInput
                             style={[styles.input, styles.whiteFont]}
@@ -246,11 +240,12 @@ class SignupScreen extends React.Component {
 
                     <View style={styles.inputContainer}>
                         <View style={styles.iconContainer}>
-                            <Image
+                        <FAIcons name="envelope" size={25} style={styles.inputIcon} color='white'/>
+                            {/* <Image
                                 source={emailIcon}
                                 style={styles.inputIcon}
                                 resizeMode="contain"
-                            />
+                            /> */}
                         </View>
                         <TextInput
                             style={[styles.input, styles.whiteFont]}
@@ -267,11 +262,7 @@ class SignupScreen extends React.Component {
 
                     <View style={styles.inputContainer}>
                         <View style={styles.iconContainer}>
-                            <Image
-                                source={lockIcon}
-                                style={styles.inputIcon}
-                                resizeMode="contain"
-                            />
+                        <FAIcons name="lock" size={35} style={styles.inputIcon} color='white'/>
                         </View>
                         <TextInput
                             secureTextEntry={true}
@@ -288,11 +279,7 @@ class SignupScreen extends React.Component {
 
                     <View style={styles.inputContainer}>
                         <View style={styles.iconContainer}>
-                            <Image
-                                source={birthdayIcon}
-                                style={styles.inputIcon}
-                                resizeMode="contain"
-                            />
+                        <FAIcons name="mobile" size={35} style={styles.inputIcon} color='white'/>
                         </View>
                         <TextInput
                             style={[styles.input, styles.whiteFont]}
@@ -302,18 +289,14 @@ class SignupScreen extends React.Component {
                             placeholder="Mobile Number"
                             keyboardType='numeric'
                             placeholderTextColor="#FFF"
-                            underlineColorAndroid='transparent'
+                            // underlineColorAndroid='transparent'
                         />
                     </View>
 
                     <View style={styles.inputContainer}>
 
                         <View style={styles.iconContainer}>
-                            <Image
-                                source={birthdayIcon}
-                                style={styles.inputIcon}
-                                resizeMode="contain"
-                            />
+                        <FAIcons name="calendar" size={30} style={styles.inputIcon} color='white'/>
                         </View>
                         
                         <TouchableOpacity onPress={this.onDOBPress.bind(this)} >

@@ -3,6 +3,7 @@ import { View, TextInput, StyleSheet,AsyncStorage } from 'react-native'
 import Button from '../components/Button'
 import { DropDownHolder } from '../utils/DropDownHolder'
 import QRCodeScanner from 'react-native-qrcode-scanner';
+import Spinner from 'react-native-loading-spinner-overlay';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 // redux
 import { bindActionCreatorsExt } from '../utils/bindActionCreatorsExt'
@@ -70,6 +71,7 @@ class LoginPrivateKey extends React.Component {
         return (
             <View style={styles.container}>
                 <View style={styles.loginForm}>
+                <Spinner visible={this.props.decrypting} textContent='Please wait..' textStyle={{ color: '#000' }} />
                     <TextInput
                         ref={(el) => { this.privateKey = el; }}
                         onChangeText={(privateKey) => this.setState({ privateKey })}
@@ -88,10 +90,10 @@ class LoginPrivateKey extends React.Component {
                 />
                     <Button title="Login" onPress={this._walletLogin.bind(this)} />
                     </View>
-                    <QRCodeScanner
+                    {!this.props.decrypting && <QRCodeScanner
                             onRead={this.onSuccess.bind(this)}
 
-                        />
+                        />}
                 
             </View>
         )
@@ -123,7 +125,8 @@ const styles = StyleSheet.create({
 
 function mapStateToProps(state, ownProps) {
     return {
-        loggedIn:state.wallet.loggedIn
+        loggedIn:state.wallet.loggedIn,
+        decrypting:state.wallet.decrypting
     }
 }
 

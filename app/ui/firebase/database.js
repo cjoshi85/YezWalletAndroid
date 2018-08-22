@@ -12,7 +12,7 @@ class Database {
      * @param mobile
      * @returns {firebase.Promise<any>|!firebase.Promise.<void>}
      */
-    static setUserData(userId, username,email, phone,role,countrycode) {
+    static setUserData(userId, username,email, phone,role,countrycode,symbol) {
 
         let userPath = "/user/" + userId + "/details";
         let rolePath= "/roles/"+userId;
@@ -30,7 +30,8 @@ class Database {
         })
 
         firebase.database().ref(currencyPath).set({
-            countrycode:countrycode
+            countrycode:countrycode,
+            symbol
         })
 
     }

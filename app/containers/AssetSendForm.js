@@ -1,5 +1,5 @@
 import React from 'react'
-import { Text,View, TextInput, StyleSheet,Image, TouchableOpacity,Modal } from 'react-native'
+import { Text,View, TextInput, StyleSheet,Image, TouchableOpacity,Modal,ScrollView } from 'react-native'
 import { isValidPublicAddress } from '../api/crypto/index'
 import FAIcons from 'react-native-vector-icons/FontAwesome'
 import Button from '../components/Button'
@@ -16,6 +16,7 @@ import { connect } from 'react-redux'
 import { bindActionCreatorsExt } from '../utils/bindActionCreatorsExt'
 import { ActionCreators } from '../actions'
 import { AsyncStorage } from 'react-native'
+import NeoBalanceForm from './NeoBalanceForm';
 
 class AssetSendForm extends React.Component {
     constructor(props) {
@@ -43,6 +44,16 @@ class AssetSendForm extends React.Component {
     }
   }
 
+  async componentDidMount(){
+    if(this.props.created){ 
+        await AsyncStorage.setItem('encryptedWIF',this.props.encryptedWIF)
+        await AsyncStorage.setItem('passphrase',this.props.passphrase)
+        if(this.props.wif){
+        await AsyncStorage.setItem('wif',this.props.wif)
+        }
+    }
+  }
+
     _toggleAsset() {
         const asset = this.state.selectedAsset === ASSET_TYPE.NEO ? ASSET_TYPE.GAS : ASSET_TYPE.NEO
         this.setState({ selectedAsset: asset })
@@ -64,17 +75,54 @@ class AssetSendForm extends React.Component {
         
       }
 
+      _UpdateState=()=>{
+          debugger
+        this.setState({
+              refreshingState:true
+          })
+        this.props.wallet.updateState()
+      }
+
     componentWillReceiveProps(nextProps) {
-        if (nextProps.updateAfterSend == true) {
-            this.txtInputAmount.clear()
-            this.txtInputAddress.clear()
-            this.setState({ value: '' });
+        // if (nextProps.updateAfterSend == true) {
+        //     this.txtInputAmount.clear()
+        //     this.txtInputAddress.clear()
+        //     this.setState({ value: '' });
+        // }
+    }
+
+    componentDidUpdate(){
+        debugger
+        if(this.props.sendingAsset && this.state.ModalVisibleStatus_S){
+            this.closeSendModal()
         }
+
+        if(this.props.updatingState && this.state.refreshingState){
+            this.dropdown.alertWithType(
+                'info',
+                'Info',
+                'Retrieving latest BlockChain Information.'
+            )
+         }
+
+         if(this.props.updatedState && this.state.refreshingState){
+            this.dropdown.alertWithType(
+                'success',
+                'Success',
+                'Retrieved latest BlockChain Information.'
+            )
+            setTimeout(()=>{
+                this.setState({
+                    refreshingState:false
+                })
+            },1000)
+         }
+        
     }
 
     _isValidInputForm(address, amount, assetType) {
         let result = true
-        const balance = assetType == ASSET_TYPE.NEO ? this.props.neo : this.props.gas
+        const balance = assetType == ASSET_TYPE.YEZ ? this.props.yez : this.props.gas
         if (address == undefined || address.length <= 0 || isValidPublicAddress(address) != true || address.charAt(0) !== 'A') {
             this.dropdown.alertWithType('error', 'Error', 'Not a valid destination address')
             result = false
@@ -84,7 +132,7 @@ class AssetSendForm extends React.Component {
         } else if (amount > balance) {
             this.dropdown.alertWithType('error', 'Error', 'Not enough ' + `${assetType}`)
             result = false
-        } else if (assetType == ASSET_TYPE.NEO && parseFloat(amount) !== parseInt(amount)) {
+        } else if (assetType == ASSET_TYPE.YEZ && parseFloat(amount) !== parseInt(amount)) {
             this.dropdown.alertWithType('error', 'Error', 'Cannot not send fractional amounts of ' + `${assetType}`)
             result = false
         }
@@ -94,12 +142,12 @@ class AssetSendForm extends React.Component {
     _sendAsset() {
         const address = this.state.address
         const amount = this.txtInputAmount._lastNativeText
-        const assetType = this.state.selectedAsset
+       // const assetType = this.state.selectedAsset
 
         // TODO: add confirmation (modal?)
-        if (this._isValidInputForm(address, amount, 'NEO')) {
+        if (this._isValidInputForm(address, amount, 'YEZ')) {
         //    alert(address+' '+amount+' '+assetType)
-                this.props.wallet.sendAsset(address, amount, 'NEO')
+                this.props.wallet.sendAsset(address, amount, 'YEZ')
         }
     }
     handleDialogCancel = () => {
@@ -110,18 +158,38 @@ class AssetSendForm extends React.Component {
         this.setState({ dialogVisible: false });
     };
 
+    closeSendModal=()=>{
+        this.dropdown.alertWithType(
+            'info',
+            'Info',
+            'Sending YezCoin...'
+        )
+        this.setState({
+            ModalVisibleStatus_S:false
+        })
+    }
+
    render(){
         const background = require("../img/background.png");
-        const {neo,neoPrice,currencyCode,passphrase,symbol}=this.props
-        debugger
+        const {neo,neoPrice,currencyCode,symbol,yez,yezPrice,roleType}=this.props
         const neoValue = neoPrice && neo && neo !== '0'
          ? toBigNumber(neoPrice).multipliedBy(neo) : toBigNumber(0)
 
-         const invalidPrice = isNil(neoPrice)
+         const yezValue = yezPrice && yez && yez !== '0'
+         ? toBigNumber(yezPrice).multipliedBy(yez) : toBigNumber(0)
+
+         const invalidPrice = isNil(yezPrice)
+
+         const advance=roleType==='Advance'?true:false
+         //alert(advance)
+         
 
         return (
-            <View style={styles.dataInputView}>
-                <Image source={background} style={{width: null, height: '100%'}} resizeMode="cover">
+            // <ScrollView style={styles.dataInputView}>
+                
+        <View style={styles.dataInputView}>
+            <Image source={background} style={{width: null, height: '100%'}} resizeMode="cover">
+                <ScrollView>
                     <Modal
                         visible={this.state.ModalVisibleStatus_S}
                         onRequestClose={() => {
@@ -142,7 +210,7 @@ class AssetSendForm extends React.Component {
                                 onChangeText={(value) => this.setState({'address': value})}
                                 value={this.state.address}
                                 multiline={false}
-                                placeholder="Where to send the asset (address)"
+                                placeholder="Where to send the Yezcoin (address)"
                                 placeholderTextColor="#636363"
                                 returnKeyType="done"
                                 style={styles.inputBox}
@@ -168,7 +236,7 @@ class AssetSendForm extends React.Component {
                                     // onPress={this._toggleAsset.bind(this)}
                                     style={styles.assetToggleButton}/>
                         </View>
-                        <Button title="Send Asset" onPress={this._sendAsset.bind(this)}/>
+                        <Button title="Send Yezcoin" onPress={this._sendAsset.bind(this)}/>
 
                         <Button title="Cancel" onPress={() => {
                             this.ShowModalFunction_S(!this.state.ModalVisibleStatus_S)
@@ -188,11 +256,11 @@ class AssetSendForm extends React.Component {
                                 <Text style={styles.textpublicAddress}>Your Public Neo Address:</Text>
                                 <Text style={styles.textpublicAddress}>{this.props.address}</Text>
                             </View>
-                            <View style={styles.addressRow}>
+                            <View style={styles.addressRow1}>
                                 <QRCode
                                     value={this.props.address}
                                     size={200}
-                                    bgColor='purple'
+                                    bgColor='black'
                                     fgColor='white'/>
                             </View>
 
@@ -206,36 +274,58 @@ class AssetSendForm extends React.Component {
                         <View style={styles.coinCountView}>
                             <Text style={styles.coinCountLabel}>YEZ</Text>
                             <Text style={[styles.coinCountValue, this.props.pendingBlockConfirm ? styles.pendingConfirm : null]}>
-                            {neo ? formatNEO(neo) : '-'}
-                            </Text>
-                        </View>
-                        <View style={styles.refreshButtonView}>
-                            <FAIcons name="refresh" size={24} style={styles.refreshButton} />
-                        </View>
-                        <View style={styles.coinCountView}>
-                            <Text style={styles.coinCountLabel}>{symbol}</Text>
-                            <Text style={[styles.coinCountValue, this.props.pendingBlockConfirm ? styles.pendingConfirm : null]}>
-                            {invalidPrice ? '-' :formatFiat(neoValue)}
+                            {yez ? formatNEO(yez) : '-'}
                             </Text>
                         </View>
                     </View>
-                    <TouchableOpacity onPress={() => {
-                        this.ShowModalFunction_S(true)
-                    }}>
-                        <View style={styles.button}>
-                            <Text style={styles.whiteFont}>Send</Text>
+                    <View style={styles.content}>
+                        <View style={styles.refreshButtonView} >
+                            <FAIcons name="refresh" size={24} style={styles.refreshButton} onPress={()=>{
+                                this._UpdateState()
+                            }}/>
                         </View>
-                    </TouchableOpacity>
+                    </View>
+                    
+                    <View style={styles.content}>
+                        <View style={styles.coinCountView}>
+                            <Text style={styles.coinCountLabel}>Total({currencyCode})</Text>
+                            <Text style={[styles.coinCountValue, this.props.pendingBlockConfirm ? styles.pendingConfirm : null]}>
+                            {symbol}{invalidPrice ? '-' :formatFiat(yezValue)} 
+                            </Text>
+                        </View>
+                    </View>
+                        
+                        
+                    <View style={styles.buttonContainer}>  
+                        <View style={{flex:1,marginLeft:5}}>
+                            <TouchableOpacity onPress={() => {
+                                this.ShowModalFunction_S(true)
+                                }}>
+                                <View style={styles.button}>
+                                    <Text style={styles.whiteFont}>Send</Text>
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                        <View style={{flex:1,marginLeft:5,marginRight:5}}>
+                            <TouchableOpacity onPress={() => {
+                                this.ShowModalFunction_R(true)
+                                }}>
+                                <View style={styles.button}>
+                                    <Text style={styles.whiteFont}>Recieve</Text>
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
 
-                    <TouchableOpacity onPress={() => {
-                        this.ShowModalFunction_R(true)
-                    }}>
-                        <View style={styles.button}>
-                            <Text style={styles.whiteFont}>Recieve</Text>
-                        </View>
-                    </TouchableOpacity>
-                </Image>
-            </View>
+                  { advance && <View style= {{borderTopWidth:2,borderTopColor:'white',marginTop:10}} >
+                        <NeoBalanceForm/>
+                    </View> 
+                  }
+                </ScrollView>
+            </Image>    
+        </View> 
+            
+            // </ScrollView>
         )
     }
 }
@@ -244,17 +334,21 @@ const styles = StyleSheet.create({
     dataInputView: {
         backgroundColor: '#E8F4E5',
         flex:1,
-        paddingBottom: 10
+        
     },
     content: {
         flexDirection: 'row',
-        marginTop:20,
-        marginBottom:20
+        marginTop:10,
+        marginBottom:10,
+        justifyContent: 'center',
+        alignItems: 'center'
     },
     coinCountView: {
         flexDirection: 'column',
-        flex: 0.35,
-        alignItems: 'center' // horizontal
+        flex: 1,
+        alignItems: 'center',
+        overflow:'visible'
+         // horizontal
     },
     coinCountLabel: {
         fontSize: 14,
@@ -262,22 +356,24 @@ const styles = StyleSheet.create({
         color:'#FFF'
     },
     coinCountValue: {
-        fontSize: 40,
-        fontWeight: '200',
+        fontSize: 30,
+        fontWeight: '300',
         color:'#FFF'
     },
     dialogText:{
         marginTop:5,
     },
     refreshButtonView: {
-        flexDirection: 'column',
-        flex: 0.3,
-        alignItems: 'center', // horizontal
-        justifyContent: 'center'
+        flexDirection: 'row',
+        alignItems: 'center', // horizontal       
     },
     refreshButton: {
         color: '#4D933B'
     },
+    buttonContainer: {
+        flex: 0.4,
+        flexDirection: 'row',        
+      },
     button:{
         backgroundColor: "hsl(119,139,61) rgb(28,102,100)",
         alignItems: 'center',
@@ -286,13 +382,6 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         marginTop: 30
     },
-    addressRow1:{
-        flexDirection: 'row',
-        alignItems: 'center', // vertical
-        marginVertical: 5
-
-    },
-
     input: {
         flex: 1,
         fontSize: 20,
@@ -301,6 +390,12 @@ const styles = StyleSheet.create({
         color: '#00000'
       },
 
+    addressRow1: {
+        flexDirection: 'row',
+        alignItems: 'center', // vertical
+        marginVertical: '30%',
+        marginHorizontal:'25%'
+    },
     addressRow: {
         flexDirection: 'row',
         alignItems: 'center', // vertical
@@ -369,7 +464,7 @@ const styles = StyleSheet.create({
         marginTop:10
     },
     textpublicAddress:{
-        marginTop: 10,
+        marginTop: 20,
         fontSize: 15,
         textAlign: 'center'
 
@@ -395,6 +490,8 @@ function mapStateToProps(state, ownProps) {
         address: state.wallet.address,
         neo: state.wallet.neo,
         gas: state.wallet.gas,
+        yez: state.wallet.yez,
+        yezPrice: state.wallet.yezPrice,
         neoPrice:state.wallet.neoPrice,
         currencyCode:state.wallet.currencyCode,
         name: state.wallet.name,
@@ -403,7 +500,13 @@ function mapStateToProps(state, ownProps) {
         passphrase: state.wallet.passphrase,
         encryptedWIF: state.wallet.encryptedWIF,
         created:state.wallet.created,
-        symbol:state.wallet.symbol
+        symbol:state.wallet.symbol,
+        updatingState:state.wallet.updatingState,
+        updatedState:state.wallet.updatedState,
+        sentAsset:state.wallet.sentAsset,
+        sendingAsset:state.wallet.sendingAsset,
+        wif:state.wallet.wif,
+        roleType:state.wallet.roleType
     }
 }
 

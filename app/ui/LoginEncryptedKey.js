@@ -157,10 +157,10 @@ class LoginEncryptedKey extends React.Component {
                 />
                     <Button title="Login" onPress={this._walletLogin.bind(this)} />
                     </View>
-                   {/* {this.state.showQR && <QRCodeScanner
+                   {this.state.showQR && <QRCodeScanner
                             onRead={this.onSuccess.bind(this)}
 
-                   /> } */}
+                   /> }
 
             </View>
         )

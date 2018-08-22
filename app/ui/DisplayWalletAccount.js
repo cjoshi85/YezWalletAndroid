@@ -62,6 +62,7 @@ class DisplayWalletAccount extends React.Component{
                                     size={100}
                                     bgColor='black'
                                     fgColor='white'/>
+                                    <Text style={{marginVertical: 10}}> Address </Text>
 </View>
 <View style={styles.addressRow}>
 
@@ -70,7 +71,7 @@ class DisplayWalletAccount extends React.Component{
                                     size={100}
                                     bgColor='black'
                                     fgColor='white'/>
-                                    <Text></Text>
+                                    <Text style={{marginVertical: 10}}> Private Key </Text>
                                     
 <View style={styles.addressRow}>
                                     <QRCode
@@ -78,6 +79,8 @@ class DisplayWalletAccount extends React.Component{
                                     size={100}
                                     bgColor='black'
                                     fgColor='white'/>
+
+                                    <Text style={{marginVertical: 10}}> Encryped Key </Text>
                                     </View>
                            </View> 
                             </View>
@@ -132,10 +135,11 @@ const styles = StyleSheet.create({
         marginBottom: 10
     },
     addressRow: {
-        flexDirection: 'row',
+        flexDirection: 'column',
         alignItems: 'center', // vertical
         marginVertical: 5,
-        marginLeft:10
+        marginLeft:10,
+        flex:1
     },
 })
 

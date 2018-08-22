@@ -3,6 +3,7 @@ package com.yezwallet;
 import android.app.Application;
 
 import com.facebook.react.ReactApplication;
+import com.facebook.reactnative.androidsdk.FBSDKPackage;
 import co.apptailor.googlesignin.RNGoogleSigninPackage;
 import com.facebook.reactnative.androidsdk.FBSDKPackage;
 import io.invertase.firebase.RNFirebasePackage;
@@ -35,6 +36,7 @@ protected static CallbackManager getCallbackManager() {
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
           new MainReactPackage(),
+            new FBSDKPackage(mCallbackManager),
             new RNGoogleSigninPackage(),
             new RNFirebasePackage(),
             new RNCameraPackage(),

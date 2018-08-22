@@ -30,7 +30,7 @@ const routeConfiguration = {
         navigationOptions:{
             tabBarLabel:'Settings',
             headerTitle:'Settings',
-            tabBarIcon: ({ tintColor, focused }) => <FAIcons name="setting" size={24} style={{ color: tintColor }} />
+            tabBarIcon: ({ tintColor, focused }) => <FAIcons name="gear" size={24} style={{ color: tintColor }} />
         }
     },
 
@@ -56,13 +56,13 @@ const tabBarConfiguration = {
         inactiveTintColor: '#979797', // label and icon color of the inactive tab
         labelStyle: {
             // style object for the labels on the tabbar
-            fontSize: 12,
+            fontSize: 10,
             color: '#636363'
         },
         style: {
             // style object for the tabbar itself
             borderTopColor: '#979797', // seems to set the tabbar top border color on IOS
-            borderTopWidth: 1
+            borderTopWidth: 1.5
         }
     },
     tabBarComponent: TabBarBottom,

@@ -21,7 +21,7 @@ import { isBlockedByTransportSecurityPolicy, generateEncryptedWif } from '../uti
 let bgTaskHandler = null
 
 export function* rootWalletSaga() {
-    yield all([watchCreateWallet(), watchLoginWallet(), watchSendAsset(),watchToggleUser(),watchUpdateCurrency(),watchUpdatePassphrase(), watchClaimGAS(), watchImportNEP6()])
+    yield all([watchCreateWallet(), watchLoginWallet(), watchSendAsset(),watchUpdateState(),watchToggleUser(),watchUpdateCurrency(),watchUpdatePassphrase(), watchClaimGAS(), watchImportNEP6()])
 }
 
 /*
@@ -75,13 +75,32 @@ export function* watchImportNEP6() {
 export function* watchUpdateCurrency(){
     while(true){
         const params=yield take(actions.wallet.UPDATE_CURRENCY)
+        yield put({ type: actions.wallet.UPDATE_CURRENCY_START })
         const symbol=params.symbol
         const wallet = yield select(getWallet)
         const currency=yield call(updateCurrency,wallet.userId,params.currency,symbol)
-        debugger
-        yield put({type:actions.wallet.UPDATE_CURRENCY_SUCCESS,currency,symbol})
         yield call(retrieveMarketPrice,currency)
-        
+        yield put({type:actions.wallet.UPDATE_CURRENCY_SUCCESS,currency,symbol})
+    }
+}
+
+export function* watchUpdateState(){
+    while(true){
+        yield take(actions.wallet.UPDATE_STATE)
+        yield put({type:actions.wallet.UPDATE_STATE_START})
+        const wallet = yield select(getWallet)
+        const network = yield select(getNetwork)
+        const blockHeight = yield call(retrieveBlockHeight,network.net)
+        if (!blockHeight || blockHeight >= network.blockHeight[network.net]) {
+         yield put({ type: actions.network.SET_BLOCK_HEIGHT, blockHeight: blockHeight })
+         yield all([
+             call(retrieveBalance,network.net, wallet.address,wallet.wif),
+             call(retrieveMarketPrice,wallet.currencyCode),
+             call(retrieveTransactionHistory,network.net, wallet.address),
+    //         call(retrieveClaimAmount, wallet.address)
+         ])
+     }
+     yield put({type:actions.wallet.UPDATE_STATE_SUCCESS})
     }
 }
 
@@ -99,9 +118,12 @@ export function* watchUpdatePassphrase(){
 export function* watchToggleUser(){
     while(true){        
         yield take(actions.wallet.TOGGLE_USER)
-        debugger
+        yield put({ type: actions.wallet.TOGGLE_USER_START }) 
         const wallet = yield select(getWallet)
+        const network = yield select(getNetwork)
         const roleType=yield call(updateUserRole,wallet.userId,wallet.roleType)
+        yield call(retrieveTransactionHistory,network.net, wallet.address,roleType)
+        yield call(delay, 1000)  
         yield put({ type: actions.wallet.TOGGLE_USER_SUCCESS,roleType })
     }
 }
@@ -189,12 +211,12 @@ function* retrieveBlockHeight(net) {
     }
 }
 
-function* retrieveBalance(net,address) {
+function* retrieveBalance(net,address,wif) {
     try {
         yield put({ type: actions.wallet.GET_BALANCE })
-        const balance = yield call(getBalance, net,address)
+        const balance = yield call(getBalance, net,address,wif)
         
-        yield put({ type: actions.wallet.GET_BALANCE_SUCCESS, neo: balance.NEO, gas: balance.GAS })
+        yield put({ type: actions.wallet.GET_BALANCE_SUCCESS, neo: balance.NEO, gas: balance.GAS,yez: balance.YEZ, tokenBalances:balance.assets })
     } catch (error) {
         yield put({ type: actions.wallet.GET_BALANCE_ERROR, error })
     }
@@ -211,10 +233,10 @@ function* retrieveMarketPrice(currency) {
     }
 }
 
-function* retrieveTransactionHistory(net,address) {
+function* retrieveTransactionHistory(net,address,roleType) {
     try {
         yield put({ type: actions.wallet.GET_TRANSACTION_HISTORY })
-        const transactions = yield call(getTransactionHistory, net,address)
+        const transactions = yield call(getTransactionHistory, net,address,roleType)
         
         yield put({ type: actions.wallet.GET_TRANSACTION_HISTORY_SUCCESS, transactions: transactions })
     } catch (error) {
@@ -234,7 +256,7 @@ function* retrieveClaimAmount(address) {
 }
 
 export function* retrieveData() {
-    let BLOCKCHAIN_UPDATE_INTERVAL = 10000 //15000
+    let BLOCKCHAIN_UPDATE_INTERVAL = 100000000 //15000
     const wallet = yield select(getWallet)
     const network = yield select(getNetwork)
     const currency='USD'
@@ -243,16 +265,19 @@ export function* retrieveData() {
         BLOCKCHAIN_UPDATE_INTERVAL = 1000
     }
 
+    yield put({ type: actions.wallet.BACKGROUND_TASK_START})
+
     const blockHeight = yield call(retrieveBlockHeight,network.net)
 
     if (!blockHeight || (blockHeight > network.blockHeight[network.net])) {
         yield put({ type: actions.network.SET_BLOCK_HEIGHT, blockHeight: blockHeight })
         yield all([
-            call(retrieveBalance, network.net, wallet.address),
+            call(retrieveBalance, network.net, wallet.address,wallet.wif),
             call(retrieveMarketPrice,wallet.currencyCode),
-            call(retrieveTransactionHistory, network.net,wallet.address),
+            call(retrieveTransactionHistory, network.net,wallet.address,wallet.roleType),
             //call(retrieveClaimAmount, wallet.address)
         ])
+        yield put({ type: actions.wallet.BACKGROUND_TASK_SUCCESS})
     }
     yield call(delay, BLOCKCHAIN_UPDATE_INTERVAL)
 }
@@ -297,7 +322,9 @@ export function* sendAssetFlow(args) {
     const FIVE_SECONDS = 5000
 
     try {
-        yield call(sendAsset, network.net, toAddress,wallet.address, wallet.wif, assetType, amount)
+        yield put({type:actions.wallet.SEND_ASSET_START})
+        yield call(delay, 1000)
+        const response=yield call(sendAsset, network.net, toAddress,wallet.address, wallet.wif, assetType, amount)
 
         if(response.result != true){
             DropDownHolder.getDropDown().alertWithType(
@@ -307,7 +334,7 @@ export function* sendAssetFlow(args) {
             )
         }
 
-        if (toAddress === wallet.address) {
+       else if (toAddress === wallet.address) {
             // Then we're just doing a transaction to release all "unspent_claim", so we can claim the GAS
             // and we don't want to notify the user with an additional dropdown box as we do below
             yield put({ type: actions.wallet.SEND_ASSET_SUCCESS, sentToSelf: true })
@@ -342,6 +369,8 @@ export function* sendAssetFlow(args) {
 
 function* loginWithWif(wif,userId){
     try{
+        yield put({ type: actions.wallet.START_DECRYPT_KEYS })
+        yield call(delay, 1000)
         const result=yield call(loginWIF,wif)
         if(!userId){
         userId=yield call(currentuser)

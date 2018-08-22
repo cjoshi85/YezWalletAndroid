@@ -30,6 +30,10 @@ export default function order(state = {}, action) {
                 generating: false,
                 decrypting: false,
                 loggedIn: false,
+                updatedState:false,
+                updatingState:false,
+                sendingAsset:false,
+                sentAsset:false,
                 logInError: null,
                 neo: 0,
                 gas: 0,
@@ -46,6 +50,20 @@ export default function order(state = {}, action) {
             return {
                 ...state,
                 decrypting: true
+            }
+
+        case actions.wallet.UPDATE_STATE_SUCCESS:
+            return {
+                ...state,
+                updatedState:true,
+                updatingState:false,
+            }
+
+        case actions.wallet.UPDATE_STATE_START:
+            return {
+                ...state,
+                updatingState:true,
+                updatedState:false
             }
         case actions.wallet.LOGIN_SUCCESS:
             //const account = getAccountFromWIF(action.plainKey)
@@ -84,16 +102,26 @@ export default function order(state = {}, action) {
                 newState = {
                     ...state,
                     neo: action.neo,
-                    gas: action.gas
+                    yez:action.yez,
+                    gas: action.gas,
+                    tokenBalances: action.tokenBalances
                 }
             } else {
                 // ignore balance updates until our transaction is confirmed
                 if (state.neo != action.neo && state.gas != action.neo) {
-                    newState = state
+                    newState = {
+                        ...state,
+                        neo:action.neo,
+                        gas:action.gas,
+                        yez:action.yez,
+                        tokenBalances: action.tokenBalances,
+                        updatingState:false
+                    }
                 } else {
                     newState = {
                         ...state,
-                        pendingBlockConfirm: false
+                        pendingBlockConfirm: false,
+                        updatingState:false
                     }
                 }
             }
@@ -103,14 +131,16 @@ export default function order(state = {}, action) {
         case actions.wallet.GET_MARKET_PRICE_SUCCESS: {
             return {
                 ...state,
-                neoPrice: action.price.NEO,
-                gasPrice: action.price.GAS
+                neoPrice:action.price.NEO,
+                gasPrice:action.price.GAS,
+                yezPrice:action.price.YEZ
             }
         }
         case actions.wallet.GET_TRANSACTION_HISTORY_SUCCESS: {
             return {
                 ...state,
-                transactions: action.transactions
+                transactions: action.transactions,
+                updatingState:false
             }
         }
         case actions.wallet.GET_AVAILABLE_GAS_CLAIM_SUCCESS:
@@ -121,6 +151,13 @@ export default function order(state = {}, action) {
                 claimUnspend: action.claimAmounts.unavailable
             }
 
+        case actions.wallet.SEND_ASSET_START:
+
+            return{
+                ...state,
+                sendingAsset:true
+            }
+
         case actions.wallet.SEND_ASSET_SUCCESS:
 
             if (action.sentToSelf == true) {
@@ -129,7 +166,11 @@ export default function order(state = {}, action) {
                  * don't do the pre-emptive balance changing as below
                  */
 
-                return state
+                return {
+                    ...state,
+                    sendingAsset:false,
+                    sentAsset:true
+                }
             } else {
                 // pre-emptively change asset value, to what has been send by the transaction for UX purpose
                 let assetToChange = action.assetType === ASSET_TYPE.NEO ? 'neo' : 'gas'
@@ -137,7 +178,9 @@ export default function order(state = {}, action) {
                     ...state,
                     updateSendIndicators: true,
                     pendingBlockConfirm: true,
-                    [assetToChange]: state[assetToChange] - action.amount
+                    sendingAsset:false,
+                    sentAsset:true,
+                    [assetToChange]: state[assetToChange]
                 }
             }
         case actions.wallet.SEND_ASSET_RESET_SEND_INDICATORS:
@@ -145,20 +188,50 @@ export default function order(state = {}, action) {
                 ...state,
                 updateSendIndicators: false
             }
+
+        case actions.wallet.UPDATE_CURRENCY_START:{
+                return{
+                    ...state,
+                    loading:true
+                }
+            }
         case actions.wallet.UPDATE_CURRENCY_SUCCESS:
         return{
             ...state,
+            loading:false,
             currencyCode:action.currency,
             symbol:action.symbol
+        }
+
+        case actions.wallet.TOGGLE_USER_START:{
+            return{
+                ...state,
+                loading:true
+            }
         }
 
         case actions.wallet.TOGGLE_USER_SUCCESS: {
                 debugger
             return {
                 ...state,
+                loading:false,
                 roleType: action.roleType
                 }
             }
+
+        case actions.wallet.BACKGROUND_TASK_START: {
+            return{
+                ...state,
+                loading:true
+            }
+        }
+
+        case actions.wallet.BACKGROUND_TASK_SUCCESS: {
+            return{
+                ...state,
+                loading:false
+            }
+        }
         default:
             return state
     }

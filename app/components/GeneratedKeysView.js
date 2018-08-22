@@ -44,11 +44,12 @@ class GeneratedKeysView extends React.Component {
             <ScrollView>
                 <View style={{flex: 1, flexDirection: 'row'}}>
                 <View style={styles.addressRow}>
-                                <QRCode
+                    <QRCode
                                     value={address}
                                     size={100}
                                     bgColor='black'
                                     fgColor='white'/>
+                    <Text style={{marginVertical: 10}}> Address </Text>
                 </View>
                    {wif && <View style={styles.addressRow}>
 
@@ -57,14 +58,18 @@ class GeneratedKeysView extends React.Component {
                                     size={100}
                                     bgColor='black'
                                     fgColor='white'/>
+                                    <Text style={{marginVertical: 10}}> Private Key </Text>
                                     </View>
                                     }
+
+                                    
                {encryptedWIF && <View style={styles.addressRow}>
                                     <QRCode
                                     value={encryptedWIF}
                                     size={100}
                                     bgColor='black'
                                     fgColor='white'/>
+                                    <Text style={{marginVertical: 10}}> Encryped Key </Text>
                                     </View>}
                 </View> 
                             
@@ -72,7 +77,7 @@ class GeneratedKeysView extends React.Component {
                     {passphrase && <KeyDataRow title="Passphrase" value={passphrase} />}
                     <KeyDataRow title="Public address" value={address} />
                     {encryptedWIF && <KeyDataRow title="Encrypted key" value={encryptedWIF} />}
-                                {wif && <KeyDataRow title="Private key" value={wif} /> }
+                                {wif && <KeyDataRow title="Private Key" value={wif} /> }
                 </View>
                 <Button onPress={this._copyToClipBoard.bind(this)} title="Copy data to clipboard" />
                 
@@ -129,10 +134,12 @@ const styles = StyleSheet.create({
         marginBottom: 10
     },
     addressRow: {
-        flexDirection: 'row',
+        flexDirection: 'column',
         alignItems: 'center', // vertical
         marginVertical: 5,
-        marginLeft:10
+        marginLeft:10,
+        flex:1,
+        
     },
 })
 

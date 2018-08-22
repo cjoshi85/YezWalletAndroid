@@ -59,7 +59,7 @@ class Dashboard extends React.Component {
           generating: true
         })
       }
-      else if(user_id && encryptedKey && passphrase){
+      else if(uid && encryptedKey && passphrase){
         this.props.wallet.login(encryptedKey,passphrase,uid)
         this.setState({
           generating: true

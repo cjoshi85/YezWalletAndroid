@@ -98,7 +98,7 @@ try{
   export async function getCurrencySymbol(userId){
     let currencyPath="/countrycode/"+ userId;
     var snapshot=await firebase.database().ref(currencyPath).once('value')
-    if(snapshot.val()){
+    if(snapshot.val().symbol){
         return snapshot.val().symbol
     }
     return '$'
@@ -109,7 +109,7 @@ try{
     try{
       let currencyPath="/countrycode/"+ userId;
       var snapshot=await firebase.database().ref(currencyPath).once('value')
-      if(snapshot.val()){
+      if(snapshot.val().countrycode){
         return snapshot.val().countrycode
       }
       return 'USD'
@@ -123,7 +123,7 @@ try{
           debugger
       let userPath="/user/"+ userId+"/details";
       var snapshot=await firebase.database().ref(userPath).once('value')
-      if(snapshot.val()){
+      if(snapshot.val().name){
         return snapshot.val().name
       }
 
@@ -178,6 +178,21 @@ export async function getAllAdress(userId){
     snapshot.forEach(function(childSnapshot) {
       var childKey = childSnapshot.val();
       items.push(childKey.address);
+    }); 
+    debugger
+    return items
+}
+
+export async function getAllWalletName(userId){
+    let addressPath = "/wallet/"+userId;
+
+    // alert(userId)
+    let items = [];
+    debugger
+    let snapshot = await firebase.database().ref(addressPath).orderByKey().once('value');
+    snapshot.forEach(function(childSnapshot) {
+      var childKey = childSnapshot.key;
+      items.push(childKey);
     }); 
     debugger
     return items

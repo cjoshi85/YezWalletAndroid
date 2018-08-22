@@ -1,6 +1,7 @@
 import React from 'react';
-import { StyleSheet, View, TouchableOpacity, Text, TextInput, Image, AsyncStorage} from 'react-native';
+import { StyleSheet, View, TouchableOpacity, Text, TextInput, Image, AsyncStorage,Button} from 'react-native';
 import { MaterialDialog } from 'react-native-material-dialog';
+import FAIcons from 'react-native-vector-icons/FontAwesome'
 import { isValidPassphrase} from '../utils/walletStuff'
 import { resetUserState } from '../actions/auth'
 import Database from "./firebase/database";
@@ -24,12 +25,12 @@ class LoginScreen extends React.Component {
 
   componentWillMount() {
     const config = {
-      apiKey: "AIzaSyCYwSK4rexyY6l1N82J4h0bmAY8O-l7t1A",
-      authDomain: "neowallet-723e2.firebaseapp.com",
-      databaseURL: "https://neowallet-723e2.firebaseio.com",
-      projectId: "neowallet-723e2",
-      storageBucket: "neowallet-723e2.appspot.com",
-      messagingSenderId: "117276209951"
+      apiKey: "AIzaSyDk4FAfV958Ht9YnFpBLG3aIcRRBL0Br8Y",
+      authDomain: "yezwallet.firebaseapp.com",
+      databaseURL: "https://yezwallet.firebaseio.com",
+      projectId: "yezwallet",
+      storageBucket: "yezwallet.appspot.com",
+      messagingSenderId: "1001567655720"
     };
     if (!firebase.apps.length) {
       firebase.initializeApp(config);
@@ -230,7 +231,7 @@ else{
 
   saveUserData = async() => {
     await AsyncStorage.setItem('user_id',this.state.uid)
-    Database.setUserData(this.state.uid,this.state.name,this.state.email, this.state.phone, "Regular",'USD');
+    Database.setUserData(this.state.uid,this.state.name,this.state.email, this.state.phone, "Regular",'USD','$');
   }
 
   createWallet = (pw) => {
@@ -239,7 +240,9 @@ else{
 
   onFBButtonPress= async()=>{
     try{
-    const result =await LoginManager.logInWithReadPermissions(['public_profile', 'email','user_birthday'])
+      debugger
+    const result =await LoginManager.logInWithReadPermissions(['public_profile', 'email'])
+    debugger
     if (result.isCancelled) {
        alert('Whoops!', 'You cancelled the sign in.');
     } 
@@ -248,15 +251,126 @@ else{
         const data= await AccessToken.getCurrentAccessToken()
         const credential=await firebase.auth.FacebookAuthProvider.credential(data.accessToken);
         const currentUser=await firebase.auth().signInWithCredential(credential)
+        if (currentUser) {
+          this.setState({
+            uid:currentUser.uid,
+            loading: true,
+            name: currentUser.displayName,
+            email: currentUser.email,
+            phone: ''
+          });
+  
+          debugger
+          
+          user_exists = await this._isUserExists(currentUser.uid)
+          wallet_exists = await this.ifWalletExists(currentUser.uid)
+          if (user_exists) {
+            if (wallet_exists) {
+              this.setState({
+                loading:false
+              })
+              this.props.navigation.navigate('LoginWallet')
+            }
+            else {         
+              const passphrase=(currentUser.displayName.replace(/\s/g,'')+'DDMMYYYY').toString()
+              this.setState({
+                  passphrase,
+                  showPop:true
+              })
+            }
+          }
+          else {
+  
+            const passphrase=(currentUser.displayName.replace(/\s/g,'')+'DDMMYYYY').toString()
+              this.setState({
+                  passphrase,
+                  showPop:true
+              })
+            this.saveUserData()
+          }
+  
+        }
+        debugger
         
     }
 
   }catch(error){
-    alert(error)
+    debugger
+    if(error.code==='auth/account-exists-with-different-credential'){
+      await this._linkAccount()
+    }
+    else{
+      alert(error)
+    }
+    //alert(error)
   }
 
  
   }
+
+
+  _linkAccount = async () => {
+    var user_exists = false
+    var wallet_exists = ""
+    try {
+      await GoogleSignin.configure({
+        ClientId: '117276209951-r3t4dgdkmjuc94nlf90l0otva6hrh50f.apps.googleusercontent.com'
+      })
+      const user = await GoogleSignin.signIn()
+      if (user) {
+        this.setState({ 
+          name: user.name,
+          email: user.email,
+          phone: '' });
+      }
+      const credential = await firebase.auth.GoogleAuthProvider.credential(
+        user.idToken,
+        user.accessToken
+      );
+      debugger
+      //const currentUser = await firebase.auth().currentUser.linkWithCredential(credential);
+      const currentUser =await firebase.auth().signInWithCredential(credential);
+      if (currentUser) {
+        this.setState({
+          uid:currentUser.uid,
+          loading: true
+        });
+
+        debugger
+        
+        user_exists = await this._isUserExists(currentUser.uid)
+        wallet_exists = await this.ifWalletExists(currentUser.uid)
+        if (user_exists) {
+          if (wallet_exists) {
+            this.setState({
+              loading:false
+            })
+            this.props.navigation.navigate('LoginWallet')
+          }
+          else {         
+            const passphrase=(user.name.replace(/\s/g,'')+'DDMMYYYY').toString()
+            this.setState({
+                passphrase,
+                showPop:true
+            })
+          }
+        }
+        else {
+
+          const passphrase=(user.name.replace(/\s/g,'')+'DDMMYYYY').toString()
+            this.setState({
+                passphrase,
+                showPop:true
+            })
+          this.saveUserData()
+        }
+
+      }
+
+    } catch (error) {
+      alert('Error' + error)
+    }
+  };
 
   _googlesignIn = async () => {
     var user_exists = false
@@ -298,7 +412,7 @@ else{
             this.props.navigation.navigate('LoginWallet')
           }
           else {         
-            const passphrase=(user.name.replace(/\s/g,'')+'04291995').toString()
+            const passphrase=(user.name.replace(/\s/g,'')+'DDMMYYYY').toString()
             this.setState({
                 passphrase,
                 showPop:true
@@ -326,18 +440,15 @@ else{
 
     const background = require("../img/background.png");
     const mark = null;
-    const lockIcon = require("../img/login1_lock.png");
-    const personIcon = require("../img/login1_person.png");
+    //const lockIcon = require("../img/login1_lock.png");
+    //const personIcon = require("../img/login1_person.png");
     return (
       <View style={styles.container}>
         <Image source={background} style={styles.background} resizeMode="cover">
-
-        
-
           <View style={styles.wrapper}>
             <View style={styles.inputWrap}>
               <View style={styles.iconWrap}>
-                <Image source={personIcon} style={styles.icon} resizeMode="contain" />
+              <FAIcons name="envelope" size={20} style={styles.icon} color='white'/>
               </View>
               <TextInput
                 onSubmitEditing={() => this.password.focus()}
@@ -353,7 +464,7 @@ else{
             </View>
             <View style={styles.inputWrap}>
               <View style={styles.iconWrap}>
-                <Image source={lockIcon} style={styles.icon} resizeMode="contain" />
+              <FAIcons name="lock" size={20} style={styles.icon} color='white'/>
               </View>
               <TextInput
                 ref={(el) => { this.password = el; }}
@@ -365,11 +476,11 @@ else{
                 secureTextEntry
               />
             </View>
-            <TouchableOpacity activeOpacity={.5}>
+            {/* <TouchableOpacity activeOpacity={.5}>
               <View>
                 <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
               </View>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
             <TouchableOpacity onPress={this.login} activeOpacity={0.5}>
               <View style={styles.button}>
                 <Text style={styles.buttonText}>Sign In</Text>
@@ -385,14 +496,23 @@ else{
               </View>
             </TouchableOpacity>
           </View>
-            {/* <LoginButton title="Continue with fb" onPress={this.onFBButtonPress} style={styles.FbButton}/> */}
-
+          
           <GoogleSigninButton
               style={styles.googleButton}
             size={GoogleSigninButton.Size.Wide}
             color={GoogleSigninButton.Color.Dark}
             onPress={this._googlesignIn}
           />
+      
+      <View style={{marginTop:10,marginLeft:10,marginRight:10}} >
+      <Button
+        onPress={this.onFBButtonPress}
+        title="Continue with Facebook"
+        color="#4267B2"
+        style={styles.facebookButton}
+      />
+      </View>
+          
         </Image>
       </View>
 
@@ -420,6 +540,7 @@ else{
                     {this._renderPop()}
                 </MaterialDialog>
         <Spinner visible={this.state.loading} textStyle={{ color: '#FFF' }} />
+        <Spinner visible={this.props.generating} textContent="Creating wallet.." textStyle={{ color: '#FFF' }} />
         {this._createWallet()}
       </View>
     );
@@ -537,6 +658,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginTop: 30,
+  },
+
+  facebookButton:{
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 20,
   },
     googleButton:{
         paddingVertical: 20,
