@@ -27,7 +27,9 @@ class DisplayWalletAccount extends React.Component{
             encrypted_key: encryptedWIF,
             private_key: wif
         }
-        Clipboard.setString(JSON.stringify(data))
+        const string=JSON.stringify(data)
+
+        Clipboard.setString(string.replace(/['"]+/g, ''))
         this.dropdown.alertWithType('info', 'Success', 'Data copied to clipboard. Be careful where you paste the data!')
     }
 

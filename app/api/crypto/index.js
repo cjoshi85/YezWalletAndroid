@@ -168,13 +168,12 @@ export async function encryptWIF(wif, passphrase) {
     //const account = getAccountFromWIF(wif)
     const account=await new wallet.Account(wif)
     //var privateKey = new TextEncoder().encode(account.privateKey);
-    debugger
     if (account) {
         // SHA Salt (use the first 4 bytes)
         const addressHash = CryptoJS.SHA256(CryptoJS.SHA256(CryptoJS.enc.Latin1.parse(account.address)))
             .toString()
             .slice(0, 8)
-            debugger
+            
         var c = crypto.scrypt(
             Buffer.from(passphrase.normalize('NFC'), 'utf8'),
             Buffer.from(addressHash, 'hex'),
@@ -199,7 +198,7 @@ export async function encryptWIF(wif, passphrase) {
                 }
             )
             const value1=encrypted.ciphertext.toString()
-            debugger
+            
             // Construct
             const assembled = NEP_HEADER + NEP_FLAG + addressHash + encrypted.ciphertext.toString()
             return bs58check.encode(Buffer.from(assembled, 'hex'))
@@ -298,7 +297,7 @@ export async function generateEncryptedWIF(passphrase, existingWIF) {
         const { WIF, address } = account
         const encryptedWIF = await wallet.encrypt(WIF, passphrase)
         //const encryptedWIF=await encryptWIF(WIF, passphrase)
-        debugger
+        
         if (encryptedWIF && account) {
            // alert(encryptedWIF+passphrase)
             result = {
@@ -675,7 +674,7 @@ function getAccountFromPrivateKey(privateKey) {
     }
     const check=new TextDecoder('utf-8').decode(privateKey);
     let check1=check.toString()
-    debugger
+    
     const publicKeyEncoded = getPublicKey(privateKey, true)
 
     /* get account from public key start */

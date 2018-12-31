@@ -26,29 +26,35 @@ class GeneratedKeysView extends React.Component {
     }
 
     _copyToClipBoard() {
-        const { passphrase, address, encryptedWIF, wif } = this.props
+        const { passphrase, address, encryptedWIF, wif,email,provider } = this.props
+        const displayEmail=email+'('+provider+')'
         const data = {
+            email: displayEmail,
             passphrase: passphrase,
             public_address: address,
             encrypted_key: encryptedWIF,
-            private_key: wif
+            private_key: wif,
+            
         }
-        Clipboard.setString(JSON.stringify(data))
+        const string=JSON.stringify(data)
+
+        Clipboard.setString(string.replace(/['"]+/g, ''))
         this.dropdown.alertWithType('info', 'Success', 'Data copied to clipboard. Be careful where you paste the data!')
     }
 
-
     render() {
-        const { passphrase, address, encryptedWIF, wif } = this.props
+        const { passphrase, address, encryptedWIF, wif,email,provider } = this.props
+        
+        const displayEmail=email+'('+provider+')'
         return (
-            <ScrollView>
+            <ScrollView style={{backgroundColor:'#E8F4E5'}}>
                 <View style={{flex: 1, flexDirection: 'row'}}>
                 <View style={styles.addressRow}>
                     <QRCode
                                     value={address}
                                     size={100}
                                     bgColor='black'
-                                    fgColor='white'/>
+                                    fgColor='#E8F4E5'/>
                     <Text style={{marginVertical: 10}}> Address </Text>
                 </View>
                    {wif && <View style={styles.addressRow}>
@@ -57,7 +63,7 @@ class GeneratedKeysView extends React.Component {
                                     value={wif}
                                     size={100}
                                     bgColor='black'
-                                    fgColor='white'/>
+                                    fgColor='#E8F4E5'/>
                                     <Text style={{marginVertical: 10}}> Private Key </Text>
                                     </View>
                                     }
@@ -68,18 +74,19 @@ class GeneratedKeysView extends React.Component {
                                     value={encryptedWIF}
                                     size={100}
                                     bgColor='black'
-                                    fgColor='white'/>
+                                    fgColor='#E8F4E5'/>
                                     <Text style={{marginVertical: 10}}> Encryped Key </Text>
                                     </View>}
                 </View> 
                             
                 <View style={styles.dataList}>
+                    {email && <KeyDataRow title="Email" value={displayEmail} />}
                     {passphrase && <KeyDataRow title="Passphrase" value={passphrase} />}
                     <KeyDataRow title="Public address" value={address} />
                     {encryptedWIF && <KeyDataRow title="Encrypted key" value={encryptedWIF} />}
                                 {wif && <KeyDataRow title="Private Key" value={wif} /> }
                 </View>
-                <Button onPress={this._copyToClipBoard.bind(this)} title="Copy data to clipboard" />
+                <Button style={{ backgroundColor: "hsl(119,139,61) rgb(67, 90, 98)", borderRadius:10 }}  onPress={this._copyToClipBoard.bind(this)} title="Copy data to clipboard" />
                 
             </ScrollView>
         )
@@ -94,7 +101,8 @@ GeneratedKeysView.propTypes = {
     encryptedWIF: PropTypes.string,
     address: PropTypes.string,
     uid:PropTypes.string,
-    showOption:PropTypes.bool
+    showOption:PropTypes.bool,
+    email: PropTypes.string
 }
 
 const styles = StyleSheet.create({

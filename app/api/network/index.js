@@ -1,15 +1,14 @@
 import request from './request'
 import axios from 'axios'
-import { api, rpc,wallet,u,sc } from '@cityofzion/neon-js'
+import { api, rpc,wallet,u,sc,settings } from '@cityofzion/neon-js'
 import Neon from '@cityofzion/neon-js'
 import {
     getAccountFromWIF,
-    buildContractTransactionData,
     buildClaimTransactionData,
     buildRawTransaction,
     signTransactionData
 } from '../crypto'
-import { ASSETS } from '../../core/constants'
+import { ASSETS,SCRIPTHASH } from '../../core/constants'
 import { toBigNumber,toNumber } from '../../core/math'
 import { COIN_DECIMAL_LENGTH } from '../../core/formatters'
 import { filter, reduce } from 'lodash'
@@ -18,23 +17,14 @@ import { reverse } from '../crypto/utils'
 
 export const NEO_ID = 'c56f33fc6ecfcd0c225c4ab356fee59390af8560be0e930faebe74a6daff7c9b'
 export const GAS_ID = '602c79718b16e442de58778e148d0b1084e3b2dffd5de6b7b16cee7969282de7'
-
+settings.httpsOnly=true
+const assets={}
 export async function getBalance(net,address,wif) {
     try{
-        // const assetBalances = await api.getBalanceFrom({ net, address }, api.neoscan)
-        // const { assets } = assetBalances.balance
-        
-        // // The API doesn't always return NEO or GAS keys if, for example, the address only has one asset
-        // const neoBalance = assets.NEO ? assets.NEO.balance.toString() : '0'
-        // const gasBalance = assets.GAS ? assets.GAS.balance.round(COIN_DECIMAL_LENGTH).toString() : '0'
-        
-        // return { [ASSETS.NEO]: neoBalance, [ASSETS.GAS]: gasBalance }
-
         const config = {
             net,
-            url:'https://seed1.neo.org:20331',
             script: Neon.create.script({
-                scriptHash: 'ae566e59ab36c5bb298615e4263e621bf93a2ad1',
+                scriptHash: SCRIPTHASH[net],
                 operation: 'balanceOf',
                 args: [Neon.u.reverseHex(wallet.getScriptHashFromAddress(address))]
               }),
@@ -46,16 +36,11 @@ export async function getBalance(net,address,wif) {
             ...config
           }, api.neoscan)
 
-          const assets=res.balance.assets
-      
-          //console.log(assets['CONTRACT TOKEN X'].balance.toString())
+          const assets=await res.balance.assets
           const neoBalance = assets.NEO ? assets.NEO.balance.toString() : '0'
           const yezBalance = assets['YEZCOIN'] ? assets['YEZCOIN'].balance.toString() : '0'
-          
           const gasBalance = assets.GAS ? assets.GAS.balance.round(COIN_DECIMAL_LENGTH).toString() : '0'
           return { [ASSETS.NEO]: neoBalance, [ASSETS.GAS]: gasBalance,[ASSETS.YEZ]: yezBalance, assets }
-          
-
         }catch(error){
             throw error
         }
@@ -63,9 +48,7 @@ export async function getBalance(net,address,wif) {
 
 export async function getWalletDBHeight(net) {
     try{
-        // const endpoint = await api.getRPCEndpointFrom({ net }, api.neoscan)
-        debugger
-        const endpoint='https://seed1.neo.org:20331'    
+        const endpoint = await api.getRPCEndpointFrom({ net }, api.neoscan)   
         const client = new rpc.RPCClient(endpoint)
         return client.getBlockCount()
         }catch(error){
@@ -83,8 +66,11 @@ function sum (txns, address, asset) {
     }, toBigNumber(0))
   }
 
-  export async function getAssetName(asset){
+  export async function getAssetName(asset,net){
     try{
+    if(assets[asset]){
+        return assets[asset]
+    }
     if(asset==='c56f33fc6ecfcd0c225c4ab356fee59390af8560be0e930faebe74a6daff7c9b'){
         return 'NEO'
     }
@@ -94,38 +80,37 @@ function sum (txns, address, asset) {
     else if(asset.length==40){
           const props = {
         scriptHash: asset, // Scripthash for the contract
-        operation: 'name', // name of operation to perform.
+        operation: 'symbol', // name of operation to perform.
         args: [] // any optional arguments to pass in. If null, use empty array.
       }
-      
-      //console.error(wallet.getScriptHashFromAddress(address))
+      const endpoint = await api.getRPCEndpointFrom({ net }, api.neoscan)
       const script =await Neon.create.script(props)
-      const res=await rpc.Query.invokeScript(script).execute('https://seed1.neo.org:20331/')
-      return Neon.u.hexstring2str(res.result.stack[0].value)
-     // hexstring2str
-
-      //const value=(Neon.u.Fixed8.fromReverseHex(res.result.stack[0].value))
-      //debugger
-      //return value
+      if(endpoint && script)
+      {const res=await rpc.Query.invokeScript(script).execute(endpoint)
+      const name=Neon.u.hexstring2str(res.result.stack[0].value)
+      assets[asset]=name
+      return name
+      }
     }
     return undefined
 }catch(error){
-    throw error
+    if(assets[asset]){
+        return assets[asset]
+    }
+    return undefined
 }
     
 }
-    
 
 
 export async function getTransactionHistory(net,address,roleType) {
     try{
         var i=1
   const endpoint = api.neoscan.getAPIEndpoint(net)
-  //const { data } = await axios.get(`${endpoint}/v1/get_last_transactions_by_address/${address}`)
   const res1=await axios.get(`${endpoint}/v1/get_address_abstracts/${address}/1`)
   const transactions1=res1.data
   var final=[]
-  //alert(transactions.data.total_pages)
+  
   while(i<=transactions1.total_pages){
     const res=await axios.get(`${endpoint}/v1/get_address_abstracts/${address}/${i}`)
     const transactions=res.data
@@ -133,7 +118,7 @@ export async function getTransactionHistory(net,address,roleType) {
         txid,
         amount:address_to===address?amount:-amount,
         time,
-        asset:await getAssetName(asset),
+        asset:await getAssetName(asset,net),
       })))
 
       if(roleType==='Advance'){
@@ -144,17 +129,13 @@ export async function getTransactionHistory(net,address,roleType) {
 
       else{
         for(var x=0;x<test.length;x++){
-            if(test[x].asset==='Yezcoin')
+            if(test[x].asset==='YEZ')
             final.push(test[x])
       }      
       }
+      //final=final===[]?test:final.push(test)
       i++
   }
-//   return data.map(({ txid, vin, vouts }) => ({
-//     txid,
-//     [ASSETS.NEO]: sum(vouts, address, NEO_ID).minus(sum(vin, address, NEO_ID)).toFixed(0),
-//     [ASSETS.GAS]: sum(vouts, address, GAS_ID).minus(sum(vin, address, GAS_ID)).toPrecision(COIN_DECIMAL_LENGTH).toString()
-//   }))
         return final
 }catch(error){
     throw error
@@ -200,24 +181,7 @@ export function getAssetId(assetType) {
 export async function sendAsset(net,destinationAddress,senderAddress, WIF, assetType, amount) {
     
     try{
-    // const intent = await api.makeIntent({assetType:amount}, destinationAddress)
-    // const intent=api.makeIntent(
-    //     {
-    //       [assetType]: toNumber(amount)
-    //     },
-    //     destinationAddress
-    //   )
-    // const config = {
-    //     net:net, // The network to perform the action, MainNet or TestNet.
-    //     address: senderAddress,  // This is the address which the assets come from.
-    //     privateKey: WIF,
-    //     intents: intent
-    //   }
-    //   const result=await api.sendAsset(config)
-    //   debugger
-    //   return result.response
-
-    const scriptHash='ae566e59ab36c5bb298615e4263e621bf93a2ad1'
+      const scriptHash=SCRIPTHASH[net]
       const fromAcct = new wallet.Account(senderAddress)
       const scriptBuilder = new sc.ScriptBuilder()
       const toAcct = new wallet.Account(destinationAddress)
@@ -227,21 +191,13 @@ export async function sendAsset(net,destinationAddress,senderAddress, WIF, asset
         u.reverseHex(toAcct.scriptHash),
         sc.ContractParam.byteArray(toNumber(amount), 'fixed8', 8)
       ]
-      
-
       scriptBuilder.emitAppCall(scriptHash, 'transfer', args)
       const script=scriptBuilder.str
-      
-
-
-    const config = {
+      const config = {
         net:net, // The network to perform the action, MainNet or TestNet.
         address: senderAddress,  // This is the address which the assets come from.
         privateKey: WIF,
-        url:'https://seed1.neo.org:20331'
-        //intents: intent
-      }
-      
+      }     
       const result=await api.doInvoke({
         ...config,
         intents: intent,

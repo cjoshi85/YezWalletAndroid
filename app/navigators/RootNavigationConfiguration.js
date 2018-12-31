@@ -2,7 +2,7 @@ import React from 'react'
 import { StackNavigator } from 'react-navigation'
 
 // Screens
-import Home from '../screens/home.js'
+
 import Dashboard from '../ui/Dashboard.js'
 import Loading from '../ui/Loading.js'
 import LoginScreen from '../ui/LoginScreen.js'
@@ -11,7 +11,8 @@ import CreateWallet from '../screens/createWallet.js'
 import LoginWallet from '../ui/LoginWallet'
 import LoginEncryptedKey from '../ui/LoginEncryptedKey'
 import LoginPrivateKey from '../ui/LoginPrivateKey'
-import Settings from '../screens/settings'
+import ForgotScreen from '../ui/ForgotScreen.js'
+
 import DisplayWalletAccount from '../ui/DisplayWalletAccount'
 import { WalletTabBar } from '../navigators/WalletTabBarConfiguration'
 import { WalletTabBarAdvance } from '../navigators/WalletTabBarConfigurationAdvance'
@@ -21,7 +22,7 @@ const defaultOptions = {
     // default options for the StackNavigator
     headerTintColor: 'white',
     headerStyle: {
-        backgroundColor: "hsl(119,139,61) rgb(28,102,100)",
+        backgroundColor: "hsl(119,139,61) rgb(67, 90, 98)",
         borderBottomColor: '#979797',
         borderBottomWidth: 1
     }
@@ -58,15 +59,7 @@ const routeConfiguration = {
     },
 
 
-    
-    Home: {
-        screen: Home,
-        navigationOptions: {
-            ...defaultOptions,
-            header:null,
-            headerTitle: 'Home'
-        }
-    },
+
 
     Login:{
         screen: LoginScreen,
@@ -76,7 +69,14 @@ const routeConfiguration = {
             headerLeft: null
         }
     },
-    
+
+    ResetPassword:{
+        screen: ForgotScreen,
+        navigationOptions: {
+            ...defaultOptions,
+            headerTitle: 'Login',
+        }
+    },
     Signup:{
         screen: SignupScreen,
         navigationOptions: {
@@ -98,7 +98,6 @@ const routeConfiguration = {
         screen: LoginWallet,
         navigationOptions: {
             ...defaultOptions,
-            headerLeft: null,
             headerTitle: 'Login to existing Wallet'
         }
     },
@@ -117,7 +116,6 @@ const routeConfiguration = {
             headerTitle: 'Login with private key'
         }
     },
-    
     WalletTabBar: {
         screen: WalletTabBar,
         navigationOptions: {
@@ -130,13 +128,8 @@ const routeConfiguration = {
             ...defaultOptions
         }
     },
-    Settings: {
-        screen: Settings,
-        navigationOptions: {
-            ...defaultOptions,
-            headerTitle: 'Settings'
-        }
-    }
+
+
 }
 
 const StackNavigatorConfiguration = {

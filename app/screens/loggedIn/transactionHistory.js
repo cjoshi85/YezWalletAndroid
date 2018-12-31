@@ -13,7 +13,7 @@ class TransactionHistory extends React.Component {
 
     _renderRow(item) {
         const tx = item.item
-        debugger
+        
         const date=moment(new Date(tx.time*1000)).format('MMMM Do YYYY, h:mm:ss a')
         return (
             <View style={styles.txRow}>
@@ -46,7 +46,7 @@ class TransactionHistory extends React.Component {
 
     render() {
         return (
-            <View>
+            <View style={{backgroundColor:'#E8F4E5'}}>
                 
                 <FlatList
                     ItemSeparatorComponent={this._renderSeparator}

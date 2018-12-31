@@ -45,7 +45,7 @@ export let initialState = {
         pendingBlockConfirm: false
     },
     network: {
-        net: 'TestNet',
+        net: 'MainNet',
         blockHeight: {
             TestNet: 0,
             MainNet: 0

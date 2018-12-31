@@ -47,12 +47,15 @@ const styles = StyleSheet.create({
     },
    
     button:{
-        backgroundColor: "hsl(119,139,61) rgb(28,102,100)",
         alignItems: 'center',
         paddingVertical: 20,
         alignItems: "center",
         justifyContent: "center",
-        marginTop: 30
+        marginTop: 30,
+        backgroundColor: "hsl(119,139,61) rgb(67, 90, 98)", 
+        borderRadius:10,
+        marginLeft: 10,
+        marginRight: 10
     },
     
       whiteFont: {

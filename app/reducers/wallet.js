@@ -67,7 +67,7 @@ export default function order(state = {}, action) {
             }
         case actions.wallet.LOGIN_SUCCESS:
             //const account = getAccountFromWIF(action.plainKey)
-            debugger
+            
             return {
                 ...state,
                 wif: action.data.WIF,
@@ -75,6 +75,7 @@ export default function order(state = {}, action) {
                 passphrase:action.data.passphrase,
                 encryptedWIF:action.data.encryptedWIF,
                 roleType: action.roleType,
+                email:action.user.email,
                 currencyCode:action.currencyCode,
                 symbol:action.symbol,
                 userId:action.userId,
@@ -211,7 +212,7 @@ export default function order(state = {}, action) {
         }
 
         case actions.wallet.TOGGLE_USER_SUCCESS: {
-                debugger
+                
             return {
                 ...state,
                 loading:false,
@@ -227,6 +228,12 @@ export default function order(state = {}, action) {
         }
 
         case actions.wallet.BACKGROUND_TASK_SUCCESS: {
+            return{
+                ...state,
+                loading:false
+            }
+        }
+        case actions.wallet.BACKGROUND_TASK_ERROR: {
             return{
                 ...state,
                 loading:false

@@ -120,16 +120,12 @@ try{
   
   export async function getUserData(userId){
       try{
-          debugger
+          
       let userPath="/user/"+ userId+"/details";
       var snapshot=await firebase.database().ref(userPath).once('value')
-      if(snapshot.val().name){
-        return snapshot.val().name
+      if(snapshot.val()){
+        return snapshot.val()
       }
-
-      return ''
-      
-      
       }catch(error){
           console.error(error)
       }
@@ -148,7 +144,7 @@ try{
 
   export async function updateCurrency(userId,currency,symbol){
     let currencyPath="/countrycode/"+userId;
-    debugger
+    
     firebase.database().ref(currencyPath).update({
         countrycode:currency,
         symbol: symbol
@@ -173,13 +169,13 @@ export async function getAllAdress(userId){
 
     // alert(userId)
     let items = [];
-    debugger
+    
     let snapshot = await firebase.database().ref(addressPath).orderByKey().once('value');
     snapshot.forEach(function(childSnapshot) {
       var childKey = childSnapshot.val();
       items.push(childKey.address);
     }); 
-    debugger
+    
     return items
 }
 
@@ -188,12 +184,12 @@ export async function getAllWalletName(userId){
 
     // alert(userId)
     let items = [];
-    debugger
+    
     let snapshot = await firebase.database().ref(addressPath).orderByKey().once('value');
     snapshot.forEach(function(childSnapshot) {
       var childKey = childSnapshot.key;
       items.push(childKey);
     }); 
-    debugger
+    
     return items
 }

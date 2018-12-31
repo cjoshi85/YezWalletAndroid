@@ -151,7 +151,7 @@ class CreateWallet extends React.Component {
                         />
 
                     {this.state.useExistingKey ? this._renderWIFEntry() : null}
-                    <Button onPress={this._generateKeys.bind(this)} title="Generate encrypted key" />
+                    <Button style={{ backgroundColor: "hsl(119,139,61) rgb(67, 90, 98)", borderRadius:10 }} onPress={this._generateKeys.bind(this)} title="Generate encrypted key" />
                 </View>
             </View>
         )
@@ -199,7 +199,8 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         flexDirection: 'column',
-        justifyContent: 'flex-start'
+        justifyContent: 'flex-start',
+        backgroundColor:'#E8F4E5'
     },
     instructionText: {
         color: '#333333',

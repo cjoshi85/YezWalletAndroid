@@ -88,7 +88,7 @@ class LoginPrivateKey extends React.Component {
                       color='#000'
                       onPress={this.changePwdType}
                 />
-                    <Button title="Login" onPress={this._walletLogin.bind(this)} />
+                    <Button style={{backgroundColor: "hsl(119,139,61) rgb(67, 90, 98)", borderRadius:10}} title="Login" onPress={this._walletLogin.bind(this)} />
                     </View>
                     {!this.props.decrypting && <QRCodeScanner
                             onRead={this.onSuccess.bind(this)}

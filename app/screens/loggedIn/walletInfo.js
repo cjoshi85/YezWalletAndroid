@@ -1,5 +1,7 @@
 import React from 'react'
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
+import { View, Text, TouchableOpacity, StyleSheet,BackHandler,DeviceEventManager } from 'react-native'
+import { NavigationActions } from 'react-navigation'
+import RNExitApp from 'react-native-exit-app';
 import FAIcons from 'react-native-vector-icons/FontAwesome'
 import Button from '../../components/Button'
 import Spacer from '../../components/Spacer'
@@ -46,7 +48,30 @@ class WalletInfo extends React.Component {
     componentDidMount() {
 
         //this.logout.bind(this)
+    
         this.props.navigation.setParams({ handleLogout: this._logout.bind(this) })
+    }
+
+    componentWillMount() {
+         BackHandler.addEventListener('hardwareBackPress', this.backPressed);
+     }
+     
+     componentWillUnmount() {
+         BackHandler.removeEventListener('hardwareBackPress', this.backPressed);
+     }
+
+     backPressed = () => {
+        //const s = this.props.navigation
+        
+        const backAction = NavigationActions.back({
+            key: 'Loading'
+          }) 
+        this.props.wallet.resetState()
+        //DeviceEventManager.invokeDefaultBackPressHandler()
+        //BackHandler.exitApp()
+        RNExitApp.exitApp();
+        //this.props.navigation.dispatch(backAction)
+        //return true;
     }
 
     componentWillReceiveProps(nextProps) {

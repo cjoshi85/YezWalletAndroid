@@ -17,6 +17,7 @@ const TOGGLE_USER_START='WALLER/TOGGLE_USER_START'
 const TOGGLE_USER_SUCCESS='WALLET/TOGGLE_USER_SUCCESS'
 const BACKGROUND_TASK_START='WALLET/BACKGROUND_TASK_START'
 const BACKGROUND_TASK_SUCCESS='WALLET/BACKGROUND_TASK_SUCCESS'
+const BACKGROUND_TASK_ERROR='WALLET/BACKGROUND_TASK_ERROR'
 const UPDATE_CURRENCY='WALLET/UPDATE_CURRENCY'
 const UPDATE_CURRENCY_START='WALLET/UPDATE_CURRENCY_START'
 const UPDATE_CURRENCY_SUCCESS='WALLET/UPDATE_CURRENCY_SUCCESS'
@@ -56,6 +57,7 @@ const IMPORT_NEP6_START = 'WALLET/IMPORT_NEP6_START'
 const IMPORT_NEP6_SUCCESS = 'WALLET/IMPORT_NEP6_SUCCESS'
 const IMPORT_NEP6_ERROR = 'WALLET/IMPORT_NEP6_ERROR'
 const IMPORT_NEP6_PROVIDE_PW = 'WALLET/IMPORT_NEP6_PROVIDE_PW'
+const SWITCH_WALLET = 'WALLET/SWITCH'
 
 export const constants = {
     CREATE_WALLET,
@@ -98,6 +100,7 @@ export const constants = {
     SEND_ASSET_ERROR,
     BACKGROUND_TASK_START,
     BACKGROUND_TASK_SUCCESS,
+    BACKGROUND_TASK_ERROR,
     SEND_ASSET_RESET_SEND_INDICATORS,
     GET_AVAILABLE_GAS_CLAIM,
     GET_AVAILABLE_GAS_CLAIM_SUCCESS,
@@ -115,7 +118,8 @@ export const constants = {
     IMPORT_NEP6_START,
     IMPORT_NEP6_SUCCESS,
     IMPORT_NEP6_ERROR,
-    IMPORT_NEP6_PROVIDE_PW
+    IMPORT_NEP6_PROVIDE_PW,
+    SWITCH_WALLET
 }
 
 export const ASSET_TYPE = {
@@ -172,8 +176,9 @@ export function updatePassphrase(passphrase){
     }
 }
 
-export function login(passphrase, encryptedKey,userId) {
+export function login(passphrase, encryptedKey,userId,walletSwitch) {
   //  alert('action uid==>'+uid)
+  if(!walletSwitch){
     return {
         type: LOGIN,
         passphrase,
@@ -182,15 +187,35 @@ export function login(passphrase, encryptedKey,userId) {
         keyIsEncrypted: true
     }
 }
+else{
+    return {
+        type: SWITCH_WALLET,
+        passphrase,
+        key: encryptedKey,
+        userId,
+        keyIsEncrypted: true
+    }
+}
+}
 // TODO: should rename to unencryptedWIF() as it's tehnically not really the private key but it's unencrypted encoded form
-export function loginWithPrivateKey(key,userId) {
-    debugger
+export function loginWithPrivateKey(key,userId,walletSwitch) {
+    if(!walletSwitch){
     return {
         type: LOGIN,
         passphrase: null,
         key,
         userId,
         keyIsEncrypted: false
+    }
+}
+    else{
+        return {
+            type: SWITCH_WALLET,
+            passphrase: null,
+            key,
+            userId,
+            keyIsEncrypted: false
+        }
     }
 }
 

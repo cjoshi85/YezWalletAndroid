@@ -41,7 +41,7 @@ export async function isValidName(userId,name){
     var result=false
 
     const allWalletNames= await getAllWalletName(userId)
-    debugger
+    
 
     if(!name){
         DropDownHolder.getDropDown().alertWithType('error','Error','Name cannot be empty')

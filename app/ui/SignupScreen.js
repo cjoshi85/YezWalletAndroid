@@ -455,11 +455,12 @@ const styles = StyleSheet.create({
         color: '#333333'
     },
     signup: {
-        backgroundColor: "hsl(119,139,61) rgb(28,102,100)",
         paddingVertical: 25,
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 15,
+        marginTop: 15,
+        backgroundColor: "hsl(119,139,61) rgb(67, 90, 98)", borderRadius:10
     },
     signin: {
         justifyContent: 'center',

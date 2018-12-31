@@ -476,14 +476,14 @@ else{
                 secureTextEntry
               />
             </View>
-            {/* <TouchableOpacity activeOpacity={.5}>
+            <TouchableOpacity onPress={()=> this._goToScreen('ResetPassword', { useExistingKey: false })} activeOpacity={.5}>
               <View>
                 <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
               </View>
-            </TouchableOpacity> */}
+            </TouchableOpacity>
             <TouchableOpacity onPress={this.login} activeOpacity={0.5}>
               <View style={styles.button}>
-                <Text style={styles.buttonText}>Sign In</Text>
+                <Text style={styles.buttonText}>Login</Text>
               </View>
             </TouchableOpacity>
           </View>
@@ -507,7 +507,7 @@ else{
       <View style={{marginTop:10,marginLeft:10,marginRight:10}} >
       <Button
         onPress={this.onFBButtonPress}
-        title="Continue with Facebook"
+        title="Login with Facebook"
         color="#4267B2"
         style={styles.facebookButton}
       />
@@ -653,11 +653,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   button: {
-    backgroundColor: "hsl(119,139,61) rgb(28,102,100)",
     paddingVertical: 20,
     alignItems: "center",
     justifyContent: "center",
     marginTop: 30,
+    backgroundColor: "hsl(119,139,61) rgb(67, 90, 98)", 
+    borderRadius:10
   },
 
   facebookButton:{

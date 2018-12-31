@@ -10,7 +10,7 @@ import PolyfillCrypto from 'react-native-webview-crypto';
 class App extends React.Component {
     
     render() {
-        console.ignoredYellowBox = ['Remote debugger']
+        console.ignoredYellowBox = ['Remote ']
         return (
             <Provider store={store}>
                 <View style={{ width: '100%', height: '100%' }}>

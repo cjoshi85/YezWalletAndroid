@@ -12,7 +12,8 @@ const routeConfiguration = {
         screen: WalletInfo,
         navigationOptions: {
             tabBarLabel: 'Wallet',
-            headerTitle: 'Wallet overview',
+            headerTitle: 'YEZ Wallet',
+            headerTitleStyle :{textAlign: 'center',alignSelf:'center'},
             tabBarIcon: ({ tintColor, focused }) => <ENTIcons name={'wallet'} size={24} style={{ color: tintColor }} />
         }
     },

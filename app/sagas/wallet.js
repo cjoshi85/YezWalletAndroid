@@ -21,7 +21,7 @@ import { isBlockedByTransportSecurityPolicy, generateEncryptedWif } from '../uti
 let bgTaskHandler = null
 
 export function* rootWalletSaga() {
-    yield all([watchCreateWallet(), watchLoginWallet(), watchSendAsset(),watchUpdateState(),watchToggleUser(),watchUpdateCurrency(),watchUpdatePassphrase(), watchClaimGAS(), watchImportNEP6()])
+    yield all([watchCreateWallet(), watchLoginWallet(),watchSwitchWallet(), watchSendAsset(),watchUpdateState(),watchToggleUser(),watchUpdateCurrency(),watchUpdatePassphrase(), watchClaimGAS(), watchImportNEP6()])
 }
 
 /*
@@ -42,15 +42,23 @@ export function* watchLoginWallet() {
         const params = yield take(actions.wallet.LOGIN)
         yield fork(bgTaskController)
         
-        const walletFlowTask = yield fork(walletUseFlow, params)
+        const walletFlowTask = yield call(walletUseFlow, params)
 
         const action = yield take([actions.wallet.LOGOUT, actions.wallet.LOGIN_ERROR])
         if (action.type == actions.wallet.LOGOUT) {
             yield put({ type: actions.wallet.RESET_STATE })
         }
 
-        cancel(walletFlowTask)
+        //cancel(walletFlowTask)
         // bgTaskController isn't started if LOGIN_ERROR occurs, on otherwise it's self ending on LOGOUT or network errors
+    }
+}
+
+export function* watchSwitchWallet(){
+    while (true) {
+        const params = yield take(actions.wallet.SWITCH_WALLET)
+        yield fork(bgTaskController)
+        yield call(walletUseFlow, params)
     }
 }
 
@@ -86,6 +94,8 @@ export function* watchUpdateCurrency(){
 
 export function* watchUpdateState(){
     while(true){
+        try{
+        
         yield take(actions.wallet.UPDATE_STATE)
         yield put({type:actions.wallet.UPDATE_STATE_START})
         const wallet = yield select(getWallet)
@@ -101,6 +111,9 @@ export function* watchUpdateState(){
          ])
      }
      yield put({type:actions.wallet.UPDATE_STATE_SUCCESS})
+    }catch(error){
+        DropDownHolder.getDropDown().alertWithType('error', 'Send', 'Failed to retrieve Blockchain Information.')
+    }
     }
 }
 
@@ -140,11 +153,9 @@ function* bgTaskController() {
     yield take([
         actions.wallet.LOGOUT,
         //actions.network.GET_BLOCK_HEIGHT_ERROR,
-        actions.wallet.GET_BALANCE_ERROR,
-        actions.wallet.GET_MARKET_PRICE_ERROR,
         //actions.wallet.GET_TRANSACTION_HISTORY_ERROR,
-        actions.wallet.GET_AVAILABLE_GAS_CLAIM_ERROR,
-        actions.wallet.CLAIM_GAS_ERROR
+        // actions.wallet.GET_AVAILABLE_GAS_CLAIM_ERROR,
+        // actions.wallet.CLAIM_GAS_ERROR
     ])
     yield cancel(bgTaskHandler)
 
@@ -181,18 +192,12 @@ function* decryptWalletKeys(encryptedKey, passphrase,userId) {
         const result = yield call(decryptWIF, encryptedKey, passphrase)
         if(!userId){
             userId=yield call(currentuser)
-            }      
+            }
+        const user=yield call(getUserData,userId)      
         const roleType=yield call(getUserRole,userId)
         const currencyCode=yield call(getCurrencyCode,userId) 
         const symbol=yield call(getCurrencySymbol,userId)    
-        const getAllAddress=yield call(getAllAdress,userId)
-        debugger
-        if(!getAllAddress.includes(result.address))
-        {
-            debugger
-            throw new Error('Wallet does not belong to your account')
-        }   
-        yield put({ type: actions.wallet.LOGIN_SUCCESS, data:result,roleType,currencyCode,symbol,userId,passphrase })
+        yield put({ type: actions.wallet.LOGIN_SUCCESS, data:result,roleType,user,currencyCode,symbol,userId,passphrase })
         yield put({ type: actions.wallet.TOGGLE_USER_SUCCESS,roleType })
     } catch (error) {
         yield put({ type: actions.wallet.LOGIN_ERROR, error })
@@ -219,6 +224,8 @@ function* retrieveBalance(net,address,wif) {
         yield put({ type: actions.wallet.GET_BALANCE_SUCCESS, neo: balance.NEO, gas: balance.GAS,yez: balance.YEZ, tokenBalances:balance.assets })
     } catch (error) {
         yield put({ type: actions.wallet.GET_BALANCE_ERROR, error })
+        throw error
+        
     }
 }
 
@@ -229,6 +236,7 @@ function* retrieveMarketPrice(currency) {
         
         yield put({ type: actions.wallet.GET_MARKET_PRICE_SUCCESS, price: price })
     } catch (error) {
+        throw error
         yield put({ type: actions.wallet.GET_MARKET_PRICE_ERROR, error })
     }
 }
@@ -240,6 +248,7 @@ function* retrieveTransactionHistory(net,address,roleType) {
         
         yield put({ type: actions.wallet.GET_TRANSACTION_HISTORY_SUCCESS, transactions: transactions })
     } catch (error) {
+        throw error
         yield put({ type: actions.wallet.GET_TRANSACTION_HISTORY_ERROR, error })
     }
 }
@@ -256,20 +265,23 @@ function* retrieveClaimAmount(address) {
 }
 
 export function* retrieveData() {
-    let BLOCKCHAIN_UPDATE_INTERVAL = 100000000 //15000
+
+    try{
+    let BLOCKCHAIN_UPDATE_INTERVAL = 6000000 //15000
     const wallet = yield select(getWallet)
     const network = yield select(getNetwork)
     const currency='USD'
 
     if (global.__SAGA__UNDER_JEST__) {
-        BLOCKCHAIN_UPDATE_INTERVAL = 1000
+        BLOCKCHAIN_UPDATE_INTERVAL = 6000000
     }
 
     yield put({ type: actions.wallet.BACKGROUND_TASK_START})
 
     const blockHeight = yield call(retrieveBlockHeight,network.net)
 
-    if (!blockHeight || (blockHeight > network.blockHeight[network.net])) {
+    if (!blockHeight || (blockHeight >= network.blockHeight[network.net])) {
+        
         yield put({ type: actions.network.SET_BLOCK_HEIGHT, blockHeight: blockHeight })
         yield all([
             call(retrieveBalance, network.net, wallet.address,wallet.wif),
@@ -280,6 +292,14 @@ export function* retrieveData() {
         yield put({ type: actions.wallet.BACKGROUND_TASK_SUCCESS})
     }
     yield call(delay, BLOCKCHAIN_UPDATE_INTERVAL)
+}catch(error){
+    
+    yield put({ type: actions.wallet.BACKGROUND_TASK_SUCCESS})
+    DropDownHolder.getDropDown().alertWithType('error', 'Send', 'Failed to retrieve Blockchain Information.')
+    yield call(delay, 600000)
+    //yield put({ type: actions.wallet.BACKGROUND_TASK_SUCCESS})
+    //yield call(delay, 60000)
+}
 }
 
 export function* backgroundSyncData() {
@@ -306,7 +326,7 @@ export function* walletUseFlow(args) {
         yield fork(decryptWalletKeys, key, passphrase,userId)
         yield take(actions.wallet.LOGIN_SUCCESS)
     } else {
-        debugger
+        
         yield call(loginWithWif,key,userId)
        // yield put({ type: actions.wallet.LOGIN_SUCCESS})
     }
@@ -375,21 +395,15 @@ function* loginWithWif(wif,userId){
         if(!userId){
         userId=yield call(currentuser)
         }
-        const userName=yield call(getUserData,userId)
+        const user=yield call(getUserData,userId)
+        
         //console.error('Username===>'+userName)
         const roleType=yield call(getUserRole,userId)
         const currencyCode=yield call(getCurrencyCode,userId)
         const symbol=yield call(getCurrencySymbol,userId)
-        const getAllAddress=yield call(getAllAdress,userId)
-        debugger
-        if(!getAllAddress.includes(result.address))
-        {
-            debugger
-            throw new Error('Wallet does not belong to your account')
-        }
-        yield put({ type: actions.wallet.LOGIN_SUCCESS, data:result,roleType,currencyCode,userName,userId,symbol })
+        yield put({ type: actions.wallet.LOGIN_SUCCESS, data:result,roleType,currencyCode,user,userId,symbol })
         yield put({ type: actions.wallet.TOGGLE_USER_SUCCESS,roleType })
-        debugger
+        
     }catch(error){
         alert(error)
         yield put({ type: actions.wallet.LOGIN_ERROR, error })

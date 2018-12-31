@@ -1,5 +1,5 @@
 import React from 'react'
-import { Text,View, TextInput, StyleSheet,Image, TouchableOpacity,Modal,ScrollView } from 'react-native'
+import { Text,View, TextInput, StyleSheet,Image, TouchableOpacity,Modal,ScrollView,Clipboard } from 'react-native'
 import { isValidPublicAddress } from '../api/crypto/index'
 import FAIcons from 'react-native-vector-icons/FontAwesome'
 import Button from '../components/Button'
@@ -10,7 +10,7 @@ import { formatFiat, formatNEO } from '../core/formatters'
 import QRCode from 'react-native-qrcode';
 import { toBigNumber } from '../core/math'
 import QRCodeScanner from 'react-native-qrcode-scanner';
-
+import { NavigationActions } from 'react-navigation'
 // redux
 import { connect } from 'react-redux'
 import { bindActionCreatorsExt } from '../utils/bindActionCreatorsExt'
@@ -19,6 +19,7 @@ import { AsyncStorage } from 'react-native'
 import NeoBalanceForm from './NeoBalanceForm';
 
 class AssetSendForm extends React.Component {
+
     constructor(props) {
         super(props)
         this.state = {
@@ -43,6 +44,13 @@ class AssetSendForm extends React.Component {
       alert(error)// Error saving data
     }
   }
+backPressed = () => {
+    const s = this.props.navigation
+    const backAction = NavigationActions.back({
+        key: null
+      }) 
+    return true;
+}
 
   async componentDidMount(){
     if(this.props.created){ 
@@ -76,23 +84,15 @@ class AssetSendForm extends React.Component {
       }
 
       _UpdateState=()=>{
-          debugger
+          
         this.setState({
               refreshingState:true
           })
         this.props.wallet.updateState()
       }
 
-    componentWillReceiveProps(nextProps) {
-        // if (nextProps.updateAfterSend == true) {
-        //     this.txtInputAmount.clear()
-        //     this.txtInputAddress.clear()
-        //     this.setState({ value: '' });
-        // }
-    }
-
-    componentDidUpdate(){
-        debugger
+      componentDidUpdate(){
+        
         if(this.props.sendingAsset && this.state.ModalVisibleStatus_S){
             this.closeSendModal()
         }
@@ -142,13 +142,18 @@ class AssetSendForm extends React.Component {
     _sendAsset() {
         const address = this.state.address
         const amount = this.txtInputAmount._lastNativeText
-       // const assetType = this.state.selectedAsset
-
         // TODO: add confirmation (modal?)
         if (this._isValidInputForm(address, amount, 'YEZ')) {
         //    alert(address+' '+amount+' '+assetType)
                 this.props.wallet.sendAsset(address, amount, 'YEZ')
         }
+    }
+
+    copyToClipBoardText(text){
+        const string=JSON.stringify(text)
+
+        Clipboard.setString(string.replace(/['"]+/g, ''))
+        this.dropdown.alertWithType('info', 'Success', 'Data copied to clipboard.')
     }
     handleDialogCancel = () => {
         this.setState({ dialogVisible: false });
@@ -171,38 +176,30 @@ class AssetSendForm extends React.Component {
 
    render(){
         const background = require("../img/background.png");
-        const {neo,neoPrice,currencyCode,symbol,yez,yezPrice,roleType}=this.props
-        const neoValue = neoPrice && neo && neo !== '0'
-         ? toBigNumber(neoPrice).multipliedBy(neo) : toBigNumber(0)
-
+        const {currencyCode,symbol,yez,yezPrice,roleType}=this.props
          const yezValue = yezPrice && yez && yez !== '0'
          ? toBigNumber(yezPrice).multipliedBy(yez) : toBigNumber(0)
-
          const invalidPrice = isNil(yezPrice)
-
          const advance=roleType==='Advance'?true:false
-         //alert(advance)
-         
-
         return (
-            // <ScrollView style={styles.dataInputView}>
-                
         <View style={styles.dataInputView}>
             <Image source={background} style={{width: null, height: '100%'}} resizeMode="cover">
                 <ScrollView>
                     <Modal
                         visible={this.state.ModalVisibleStatus_S}
+                        animationType="slide"              
                         onRequestClose={() => {
                             this.ShowModalFunction_S(!this.state.ModalVisibleStatus_S)
                         }}>
-
-
+                        <View style={styles.sendView}>
+                        <Text style={styles.scanText}>Scan or Type(send-to address)</Text>
+                        </View>
                         <QRCodeScanner
                             onRead={this.onSuccess.bind(this)}
-
+                            containerStyle={styles.sendView}
                         />
+                        <View style={styles.sendView}>
                         <View style={styles.addressRow}>
-
                             <TextInput
                                 ref={(ref) => {
                                     this.FirstInput = ref;
@@ -217,58 +214,55 @@ class AssetSendForm extends React.Component {
                                 autoCorrect={false}
                             />
                         </View>
-
                         <View style={styles.addressRow}>
-
-
                             <TextInput
                                 ref={txtInput => {
                                     this.txtInputAmount = txtInput
                                 }}
                                 multiline={false}
                                 placeholder="Amount"
+                                keyboardType='numeric'
                                 placeholderTextColor="#636363"
                                 returnKeyType="done"
                                 style={styles.inputBox}
                                 autoCorrect={false}
                             />
-                            <Button title={this.state.selectedAsset} 
+                            <Button  title={this.state.selectedAsset} 
                                     // onPress={this._toggleAsset.bind(this)}
                                     style={styles.assetToggleButton}/>
                         </View>
-                        <Button title="Send Yezcoin" onPress={this._sendAsset.bind(this)}/>
-
-                        <Button title="Cancel" onPress={() => {
+                        <Button style={{ backgroundColor: "hsl(119,139,61) rgb(67, 90, 98)", borderRadius:10 }} title="Send Yezcoin" onPress={this._sendAsset.bind(this)}/>
+                        <Button style={{ backgroundColor: "hsl(119,139,61) rgb(67, 90, 98)", borderRadius:10, marginBottom: 15 }} title="Cancel" onPress={() => {
                             this.ShowModalFunction_S(!this.state.ModalVisibleStatus_S)
                         }}/>
-
-
+                        </View>
                     </Modal>
-
-
-                    <Modal visible={this.state.ModalVisibleStatus_R} onRequestClose={() => {
+                    <Modal 
+                    visible={this.state.ModalVisibleStatus_R} 
+                    animationType="slide"          
+                    onRequestClose={() => {
                         this.ShowModalFunction_R(!this.state.ModalVisibleStatus_R)
-                    }}>
-                        <View style={{flex: 1}}>
-
-
+                    }}
+                    >
+                        <View style={{flex: 1, zIndex:1000,backgroundColor:'#E8F4E5'}}>
                             <View style={styles.addressView}>
                                 <Text style={styles.textpublicAddress}>Your Public Neo Address:</Text>
                                 <Text style={styles.textpublicAddress}>{this.props.address}</Text>
+                                <FAIcons name="clipboard" style={styles.icon} size={15} onPress={()=>{
+                                this.copyToClipBoardText(this.props.address)
+                            }}/>
                             </View>
                             <View style={styles.addressRow1}>
                                 <QRCode
                                     value={this.props.address}
                                     size={200}
                                     bgColor='black'
-                                    fgColor='white'/>
+                                    fgColor='#E8F4E5'/>
                             </View>
-
-                            <Button title="Cancel" onPress={() => {
+                            <Button style={{ backgroundColor: "hsl(119,139,61) rgb(67, 90, 98)", borderRadius:10 }}  title="Cancel" onPress={() => {
                                 this.ShowModalFunction_R(!this.state.ModalVisibleStatus_R)
                             }}/>
                         </View>
-
                     </Modal>
                     <View style={styles.content}>
                         <View style={styles.coinCountView}>
@@ -284,8 +278,7 @@ class AssetSendForm extends React.Component {
                                 this._UpdateState()
                             }}/>
                         </View>
-                    </View>
-                    
+                    </View>          
                     <View style={styles.content}>
                         <View style={styles.coinCountView}>
                             <Text style={styles.coinCountLabel}>Total({currencyCode})</Text>
@@ -294,8 +287,6 @@ class AssetSendForm extends React.Component {
                             </Text>
                         </View>
                     </View>
-                        
-                        
                     <View style={styles.buttonContainer}>  
                         <View style={{flex:1,marginLeft:5}}>
                             <TouchableOpacity onPress={() => {
@@ -316,7 +307,6 @@ class AssetSendForm extends React.Component {
                             </TouchableOpacity>
                         </View>
                     </View>
-
                   { advance && <View style= {{borderTopWidth:2,borderTopColor:'white',marginTop:10}} >
                         <NeoBalanceForm/>
                     </View> 
@@ -324,8 +314,6 @@ class AssetSendForm extends React.Component {
                 </ScrollView>
             </Image>    
         </View> 
-            
-            // </ScrollView>
         )
     }
 }
@@ -335,6 +323,10 @@ const styles = StyleSheet.create({
         backgroundColor: '#E8F4E5',
         flex:1,
         
+    },
+    icon:{
+        marginHorizontal:10,
+        marginVertical:25,
     },
     content: {
         flexDirection: 'row',
@@ -349,6 +341,19 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         overflow:'visible'
          // horizontal
+    },
+    scanText:{
+        alignItems:'center',
+        justifyContent: 'center',
+        textAlign: 'center',
+        marginTop:10
+    },
+    addressView: {
+        flexDirection: 'row',
+        justifyContent: 'center', // horizontal
+        flexWrap: 'wrap',
+        marginHorizontal: 20,
+        marginVertical: 5
     },
     coinCountLabel: {
         fontSize: 14,
@@ -368,14 +373,14 @@ const styles = StyleSheet.create({
         alignItems: 'center', // horizontal       
     },
     refreshButton: {
-        color: '#4D933B'
+        color: '#FFF'
     },
     buttonContainer: {
         flex: 0.4,
         flexDirection: 'row',        
       },
     button:{
-        backgroundColor: "hsl(119,139,61) rgb(28,102,100)",
+        backgroundColor: "hsl(119,139,61) rgb(67, 90, 98)",
         alignItems: 'center',
         paddingVertical: 20,
         alignItems: "center",
@@ -396,7 +401,10 @@ const styles = StyleSheet.create({
         marginVertical: '30%',
         marginHorizontal:'25%'
     },
-    addressRow: {
+    sendView:{
+        backgroundColor: '#E8F4E5',
+    },
+    addressRow: {   
         flexDirection: 'row',
         alignItems: 'center', // vertical
         marginVertical: 5
@@ -413,9 +421,10 @@ const styles = StyleSheet.create({
         marginHorizontal: 20,
         marginVertical: 5,
         paddingHorizontal: 10,
-        height: 36,
+        height: 50,
         fontSize: 14,
-        flex: 1
+        flex: 1,
+        color:'#000'
     },
     assetToggleButton: {
         height: 30,
@@ -423,7 +432,7 @@ const styles = StyleSheet.create({
         marginRight: 20,
         marginTop: 0,
         flex: 1,
-        backgroundColor: '#236312'
+        backgroundColor: "hsl(119,139,61) rgb(67, 90, 98)",
     },
     centerText: {
         flex: 1,
